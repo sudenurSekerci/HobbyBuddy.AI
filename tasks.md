@@ -3,17 +3,17 @@
 
 ## Faz 0 — Proje ve altyapı
 
-- [ ] **0.1** Git deposu oluştur; `.gitignore` (API anahtarları, `node_modules` vb.) ekle.
-- [ ] **0.2** Proje klasör yapısını netleştir (ör. `index.html`, `css/`, `js/`, `README` içinde kurulum notları).
-- [ ] **0.3** Google AI Studio’da Gemini API anahtarı al; **yalnızca ortam değişkeni veya Vercel env** ile kullan (istemciye gömme).
+- [x] **0.1** Git deposu oluştur; `.gitignore` (API anahtarları, `node_modules` vb.) ekle.
+- [x] **0.2** Proje klasör yapısını netleştir (ör. `index.html`, `css/`, `js/`, `README` içinde kurulum notları).
+- [x] **0.3** Google AI Studio’da Gemini API anahtarı al; **yalnızca ortam değişkeni veya Vercel env** ile kullan (istemciye gömme).
 
 ---
 
 ## Faz 1 — Arayüz (PRD: Giriş + Input)
 
-- [ ] **1.1** Temiz, modern bir giriş ekranı ve ana sayfa iskeleti (HTML).
-- [ ] **1.2** Kullanıcı girdi formu: ilgi alanları, haftalık ayırılabilir saat, aylık bütçe (doğrulama + boş alan kontrolü).
-- [ ] **1.3** Temel stil ve tipografi (CSS); mobil öncelikli düzen başlangıcı.
+- [x] **1.1** Temiz, modern bir giriş ekranı ve ana sayfa iskeleti (HTML).
+- [x] **1.2** Kullanıcı girdi formu: ilgi alanları, haftalık ayırılabilir saat, aylık bütçe (doğrulama + boş alan kontrolü).
+- [x] **1.3** Temel stil ve tipografi (CSS); mobil öncelikli düzen başlangıcı.
 
 ---
 

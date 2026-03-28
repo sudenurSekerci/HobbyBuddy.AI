@@ -1,0 +1,11 @@
+{
+  "name": "hobbybuddy-ai",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "link": "vercel link",
+    "vercel:dev": "vercel dev --yes"
+  }
+}

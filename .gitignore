@@ -17,3 +17,5 @@ Thumbs.db
 *.log
 dist/
 .vercel
+.env*.local
+.cursor/

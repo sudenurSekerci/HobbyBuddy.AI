@@ -1,0 +1,104 @@
+/* Screen-reader only until focus */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only:focus,
+.focus\:not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Loading headline pulse */
+@keyframes hb-loading-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.hb-loading-text {
+  animation: hb-loading-pulse 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hb-loading-text {
+    animation: none;
+  }
+}
+
+/* Skeleton shimmer */
+@keyframes hb-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.hb-skeleton {
+  border-radius: 0.75rem;
+  background: linear-gradient(
+    110deg,
+    rgba(0, 0, 0, 0.06) 0%,
+    rgba(0, 0, 0, 0.12) 40%,
+    rgba(0, 0, 0, 0.06) 80%
+  );
+  background-size: 200% 100%;
+  animation: hb-shimmer 1.4s ease-in-out infinite;
+}
+
+.dark .hb-skeleton {
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.14) 40%,
+    rgba(255, 255, 255, 0.06) 80%
+  );
+  background-size: 200% 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hb-skeleton {
+    animation: none;
+    background: rgba(0, 0, 0, 0.08);
+  }
+  .dark .hb-skeleton {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Button press micro-interaction (reinforced beyond Tailwind active:scale) */
+.hb-btn-press {
+  transition:
+    transform 0.12s ease-out,
+    box-shadow 0.12s ease-out;
+}
+
+.hb-btn-press:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hb-btn-press:active:not(:disabled) {
+    transform: none;
+  }
+}
