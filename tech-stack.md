@@ -8,12 +8,14 @@ Projede kullanılan teknolojiler ve rolleri.
 
 | Teknoloji | Rol |
 |-----------|-----|
-| **HTML** | Sayfa yapısı, anlamsal iskelet, form ve sonuç bölgeleri |
-| **CSS** | Görünüm, responsive düzen, tutarlı tipografi ve renk |
-| **JavaScript** | Form doğrulama, API çağrısı (proxy üzerinden), DOM güncelleme, yükleme/hata durumları |
-| **Gemini API** | Kullanıcı girdisine göre hobi önerisi, 4 haftalık plan, malzeme listesi ve analiz metni üretimi |
-| **Cursor** | Geliştirme ortamı; kod yazma, refaktör ve proje içi dokümantasyon |
-| **Vercel** | Statik site + serverless fonksiyonlar ile barındırma; ortam değişkenleri ile API anahtarı yönetimi |
+| **HTML** | Tek sayfa yapı, anlamsal bölgeler, form ve sonuç alanları |
+| **Tailwind CSS** | CDN üzerinden utility-first düzen (koyu/açık tema ile) |
+| **CSS** | `custom.css` ile ek yardımcı stiller |
+| **JavaScript (ES modül)** | `app.js`: form, tema, `/api/analyze` ve `/api/verify-urls`, sonuç ve program UI |
+| **JavaScript** | `program-tracking.js`: yerel depolama (son plan, form özeti, görev/anket ilerlemesi), özet metinleri |
+| **Gemini API** | Yapılandırılmış JSON plan üretimi (`api/analyze.js`) |
+| **Cursor** | Geliştirme ortamı |
+| **Vercel** | Statik site + `api/*` serverless; `GEMINI_API_KEY` vb. ortam değişkenleri |
 
 ---
 
@@ -21,8 +23,9 @@ Projede kullanılan teknolojiler ve rolleri.
 
 ### İstemci (tarayıcı)
 
-- **HTML / CSS / JavaScript** — Tek sayfa veya birkaç sayfalı minimal frontend; PRD’deki giriş, form ve sonuç akışını karşılar.
-- API anahtarı tarayıcıya konmaz; istekler sunucu tarafı uç noktaya gider.
+- **HTML + Tailwind + vanilla JS** — Tek sayfa; giriş, sonuç, program (yolculuk) modu.
+- API anahtarı tarayıcıda yok; istekler `api/analyze` ve `api/verify-urls` üzerinden gider.
+- **localStorage** — Son plan, form özeti, aktif program ve görev/anket durumu (sunucuya yazılmaz).
 
 ### Yapay zeka
 

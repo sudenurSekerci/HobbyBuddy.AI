@@ -9,16 +9,19 @@ HobbyBuddy AI, günümüzün "hobisizleşme" sorununa karşı; kullanıcıların
 * Somut bir ilerleme takibi ve yapılandırılmış bir plan isteyen kullanıcılar.
 
 ## 3. Kullanıcı Akışı (User Flow)
-1. **Giriş:** Kullanıcı temiz ve modern bir arayüzle karşılanır.
-2. **Input:** İlgi alanları, haftalık ayırabileceği saat ve aylık bütçe bilgilerini girer.
-3. **Analiz:** Gemini AI, bu verileri işleyerek en uygun hobi eşleşmesini yapar.
-4. **Çıktı:** Kullanıcıya 4 haftalık adım adım plan, gerekli malzeme listesi ve AI analiz raporu sunulur.
+1. **Giriş:** Kullanıcı arayüzle karşılanır.
+2. **Input:** İlgi alanları, haftalık süre, aylık bütçe (doğrulamalı form).
+3. **Analiz:** Sunucu üzerinden Gemini; yapılandırılmış plan (hobi seçenekleri, önerilen hobi, 4 hafta, kaynaklar, malzemeler, yolculuk rehberi).
+4. **Çıktı:** Plan, malzemeler ve rehber metni; isteğe bağlı hobi kartı ile aynı profille yeniden plan.
+5. **Program (yolculuk):** Kullanıcı programı başlatır; haftalar sırayla açılır, görevler ve isteğe bağlı anket yerelde tutulur. Yol tamamlanınca ileri seviye veya farklı yön için yeni analiz istenebilir.
 
 ## 4. Temel Özellikler (Features)
-* **AI Hobi Eşleştirme:** Kullanıcı verilerine dayalı nokta atışı hobi önerisi.
-* **4 Haftalık Yol Haritası:** Her hafta için spesifik görevler içeren yapılandırılmış rehber.
-* **Akıllı Malzeme Asistanı:** Belirlenen bütçeyi aşmayan, temel ihtiyaç listesi.
-* **Gelişim Analiz Raporu:** Kullanıcının bu hobide neden başarılı olabileceğine dair AI tarafından hazırlanan motivasyonel rapor.
+* **AI Hobi Eşleştirme:** İlgi, süre ve bütçeye göre hobi seçenekleri ve varsayılan öneri.
+* **4 Haftalık Yol Haritası:** Haftalık görevler ve haftalık kaynak linkleri (sunucu tarafı URL dürüstlük kuralları).
+* **Akıllı Malzeme Asistanı:** Bütçe bağlamında malzeme listesi (tahmini tutar notları).
+* **Yolculuk rehberi:** `journeyReflectionGuide` — süreç / öz-değerlendirme çerçevesi (kesin teşhis iddiası taşımaz).
+* **Program takibi:** Sıralı hafta kilidi, görev tamamlama, isteğe bağlı mini anket (ölçek + serbest yorum), yerel özet; yol sonu yeni plan tetikleyicileri.
+* **Bağlantı doğrulama:** Sonuç linklerinde isteğe bağlı sunucu kontrolü.
 
 ## 5. Teknik Gereksinimler (Tech Stack)
 * **Frontend:** HTML, CSS, JavaScript.
@@ -27,6 +30,7 @@ HobbyBuddy AI, günümüzün "hobisizleşme" sorununa karşı; kullanıcıların
 * **Versiyon Kontrol:** **GitHub**.
 
 ## 6. Başarı Kriterleri (MVP)
-* Formun sorunsuz çalışması ve verilerin AI'ya iletilmesi.
-* AI'nın 30 saniye içinde tutarlı bir 4 haftalık plan üretmesi.
-* Uygulamanın mobil uyumlu (responsive) bir tasarıma sahip olması.
+* Formun sorunsuz çalışması ve verilerin güvenli API katmanına iletilmesi.
+* Tutarlı 4 haftalık plan ve malzeme çıktısı (yanıt süresi ağ/model ile değişebilir; istemde ~55 sn hedef zaman aşımı).
+* Mobil uyumlu (responsive) arayüz.
+* Program modunda sıralı hafta ve yerel takibin çalışması; yol sonunda yeni plan isteğinin mümkün olması.

@@ -1,3 +1,127 @@
+/* Silik arka plan: yavaş blob + hafif ızgara (reduced-motion: kapalı) */
+.hb-ambient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hb-ambient-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image:
+    linear-gradient(90deg, rgba(109, 89, 230, 0.35) 1px, transparent 1px),
+    linear-gradient(rgba(109, 89, 230, 0.28) 1px, transparent 1px);
+  background-size: 48px 48px;
+  animation: hb-grid-drift 80s linear infinite;
+}
+
+.dark .hb-ambient-bg::before {
+  opacity: 0.055;
+  background-image:
+    linear-gradient(90deg, rgba(155, 140, 255, 0.2) 1px, transparent 1px),
+    linear-gradient(rgba(155, 140, 255, 0.15) 1px, transparent 1px);
+}
+
+@keyframes hb-grid-drift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(48px, 24px, 0);
+  }
+}
+
+.hb-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.2;
+  will-change: transform;
+}
+
+.hb-blob--a {
+  width: min(44vw, 380px);
+  height: min(44vw, 380px);
+  background: #c9bdfc;
+  top: -12%;
+  left: -8%;
+  animation: hb-float-a 32s ease-in-out infinite alternate;
+}
+
+.hb-blob--b {
+  width: min(38vw, 320px);
+  height: min(38vw, 320px);
+  background: #d4e8f7;
+  top: 20%;
+  right: -10%;
+  animation: hb-float-b 38s ease-in-out infinite alternate;
+}
+
+.hb-blob--c {
+  width: min(36vw, 300px);
+  height: min(36vw, 300px);
+  background: #c5f0e3;
+  bottom: -6%;
+  left: 15%;
+  animation: hb-float-c 28s ease-in-out infinite alternate;
+}
+
+.dark .hb-blob {
+  opacity: 0.12;
+}
+
+.dark .hb-blob--a {
+  background: #4a3d8a;
+}
+
+.dark .hb-blob--b {
+  background: #2d4a62;
+}
+
+.dark .hb-blob--c {
+  background: #2d6b58;
+}
+
+@keyframes hb-float-a {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(4%, 5%, 0) scale(1.05);
+  }
+}
+
+@keyframes hb-float-b {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1.03);
+  }
+  100% {
+    transform: translate3d(-4%, 4%, 0) scale(1);
+  }
+}
+
+@keyframes hb-float-c {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(3%, -4%, 0) scale(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hb-ambient-bg::before {
+    animation: none;
+  }
+  .hb-blob {
+    animation: none;
+  }
+}
+
 /* Screen-reader only until focus */
 .sr-only {
   position: absolute;
@@ -101,4 +225,26 @@
   .hb-btn-press:active:not(:disabled) {
     transform: none;
   }
+}
+
+/* İlgi önerileri: native <details>, kapalıyken tek satır */
+.hb-interest-summary {
+  list-style: none;
+}
+
+.hb-interest-summary::-webkit-details-marker {
+  display: none;
+}
+
+.hb-interest-details .hb-interest-chevron {
+  transition: transform 0.2s ease;
+}
+
+.hb-interest-details[open] .hb-interest-chevron {
+  transform: rotate(180deg);
+}
+
+.hb-interest-details[open] .hb-interest-summary {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }

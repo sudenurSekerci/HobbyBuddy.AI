@@ -8,6 +8,7 @@
       content="HobbyBuddy AI — ilgi alanlarına, zamana ve bütçeye göre kişisel hobi rehberi."
     />
     <title>HobbyBuddy AI</title>
+    <link rel="icon" href="img/hobbybuddy-mark.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -32,23 +33,38 @@
             },
             colors: {
               ink: {
-                50: "#f7f8fa",
-                100: "#eceef2",
-                200: "#d5dae3",
-                300: "#b0bac9",
-                400: "#8594ab",
-                500: "#667792",
-                600: "#515f78",
-                700: "#434d62",
-                800: "#3a4253",
-                900: "#333945",
-                950: "#21252f",
+                50: "#f4f2fb",
+                100: "#e8e4f4",
+                200: "#d4cfe8",
+                300: "#b0a8d4",
+                400: "#8a7fb8",
+                500: "#6b5f9c",
+                600: "#554a82",
+                700: "#453d6b",
+                800: "#3a3358",
+                900: "#2c2845",
+                950: "#1a1629",
+              },
+              midnight: {
+                950: "#08080e",
+                900: "#0c0c12",
+                850: "#12121a",
+                800: "#1a1a24",
+                700: "#24242f",
+                600: "#2f2f3d",
+                500: "#3d3d4f",
               },
               accent: {
-                DEFAULT: "#3d7a6b",
-                light: "#5a9d8c",
-                dark: "#2d5c51",
+                DEFAULT: "#6d59e6",
+                light: "#9b8cff",
+                dark: "#4f42c4",
               },
+            },
+            boxShadow: {
+              brand: "0 12px 40px -12px rgba(109, 89, 230, 0.45)",
+              "brand-sm": "0 4px 20px -4px rgba(109, 89, 230, 0.35)",
+              card: "0 4px 24px -4px rgba(15, 15, 25, 0.12)",
+              "card-dark": "0 8px 32px -8px rgba(0, 0, 0, 0.55)",
             },
           },
         },
@@ -62,8 +78,15 @@
     <script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.8/dist/lottie-player.js"></script>
   </head>
   <body
-    class="min-h-screen bg-gradient-to-b from-ink-50 via-white to-ink-100/80 text-ink-900 antialiased transition-colors duration-300 dark:from-ink-950 dark:via-ink-900 dark:to-ink-950 dark:text-ink-100"
+    class="relative min-h-screen bg-gradient-to-br from-violet-100/90 via-white to-indigo-50/80 text-ink-900 antialiased transition-colors duration-300 dark:from-midnight-950 dark:via-midnight-850 dark:to-midnight-900 dark:text-slate-100"
   >
+    <div class="hb-ambient-bg" aria-hidden="true">
+      <div class="hb-blob hb-blob--a"></div>
+      <div class="hb-blob hb-blob--b"></div>
+      <div class="hb-blob hb-blob--c"></div>
+    </div>
+
+    <div class="relative z-[1] flex min-h-screen flex-col">
     <a
       href="#main"
       class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[110] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:shadow-lg dark:focus:bg-ink-800 dark:focus:text-white"
@@ -71,33 +94,40 @@
     >
 
     <header
-      class="border-b border-ink-200/80 bg-white/70 backdrop-blur-md transition-colors dark:border-ink-800 dark:bg-ink-950/80"
+      class="border-b border-violet-200/70 bg-white/85 shadow-sm shadow-violet-200/20 backdrop-blur-md transition-colors dark:border-violet-950/50 dark:bg-midnight-900/90 dark:shadow-black/40"
     >
       <div
         class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8"
       >
-        <div class="flex items-center gap-3">
-          <span
-            class="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/15 text-accent-dark shadow-inner shadow-accent/10 dark:bg-accent/20 dark:text-accent-light"
-            aria-hidden="true"
-            ><i class="fa-solid fa-compass text-xl" title=""></i
-          ></span>
-          <div>
+        <a
+          href="#main"
+          class="flex min-w-0 items-center gap-3 rounded-xl outline-none ring-offset-2 ring-offset-white transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent dark:ring-offset-midnight-900"
+          aria-label="HobbyBuddy AI — ana içerik"
+        >
+          <img
+            src="img/hobbybuddy-mark.svg"
+            width="44"
+            height="44"
+            class="h-11 w-11 shrink-0 drop-shadow-sm"
+            alt=""
+            decoding="async"
+          />
+          <div class="min-w-0">
             <p
               class="font-display text-lg font-semibold tracking-tight text-ink-950 dark:text-white"
             >
               HobbyBuddy AI
             </p>
-            <p class="text-xs text-ink-500 dark:text-ink-400 sm:text-sm">
+            <p class="text-xs text-ink-600 dark:text-slate-400 sm:text-sm">
               <i class="fa-solid fa-seedling mr-1 text-accent dark:text-accent-light" aria-hidden="true"></i
               >Hobini planla, bütçeni koru
             </p>
           </div>
-        </div>
+        </a>
         <button
           type="button"
           id="theme-toggle"
-          class="hb-btn-press inline-flex h-11 w-11 items-center justify-center rounded-xl border border-ink-200 bg-white/90 text-ink-600 shadow-sm hover:border-accent/40 hover:text-accent-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:border-ink-600 dark:bg-ink-800 dark:text-ink-300 dark:hover:border-accent-light/50 dark:hover:text-accent-light"
+          class="hb-btn-press inline-flex h-11 w-11 items-center justify-center rounded-xl border border-violet-200/80 bg-white text-ink-700 shadow-sm hover:border-accent/50 hover:text-accent-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:border-midnight-600 dark:bg-midnight-800 dark:text-slate-300 dark:hover:border-accent-light/40 dark:hover:text-accent-light"
           aria-label="Tema değiştir"
           aria-pressed="false"
         >
@@ -107,10 +137,10 @@
       </div>
     </header>
 
-    <main id="main" class="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+    <main id="main" class="relative flex-1 mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
       <section class="mb-10 text-center sm:mb-14" aria-labelledby="hero-heading">
         <div
-          class="mb-5 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-4 py-1.5 text-xs font-medium text-accent-dark dark:border-accent-light/25 dark:bg-accent/10 dark:text-accent-light"
+          class="mb-5 inline-flex items-center gap-2 rounded-full border border-accent/35 bg-accent/15 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent-dark shadow-brand-sm dark:border-accent-light/40 dark:bg-accent/20 dark:text-accent-light"
         >
           <i class="fa-solid fa-sparkles" aria-hidden="true"></i>
           Kişisel hobi rehberi
@@ -120,21 +150,28 @@
           class="font-display text-3xl font-bold tracking-tight text-ink-950 dark:text-white sm:text-4xl lg:text-[2.75rem] lg:leading-tight"
         >
           Sana uygun hobiyi,<br class="hidden sm:inline" />
-          <span class="text-accent-dark dark:text-accent-light"
+          <span class="bg-gradient-to-r from-accent-dark to-violet-600 bg-clip-text text-transparent dark:from-accent-light dark:to-violet-300"
             >4 haftalık bir yol haritasıyla</span
           >
           keşfet
         </h1>
         <p
-          class="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-ink-600 dark:text-ink-300 sm:text-lg"
+          class="mx-auto mt-4 max-w-2xl text-base font-medium leading-relaxed text-ink-700 dark:text-slate-300 sm:text-lg"
         >
           İlgi alanların, haftalık zamanın ve aylık bütçen; Google Gemini ile kişisel
           hobi önerisi, 4 haftalık plan ve bütçe dostu malzeme listesi üretilir.
         </p>
       </section>
 
+      <div
+        id="api-error"
+        class="mb-8 hidden rounded-xl border border-red-300/80 bg-red-50 px-4 py-3 text-sm font-medium text-red-900 dark:border-red-500/40 dark:bg-red-950/50 dark:text-red-200"
+        role="alert"
+      ></div>
+
       <section
-        class="rounded-2xl border border-ink-200/90 bg-white p-6 shadow-sm shadow-ink-900/5 transition-colors dark:border-ink-700 dark:bg-ink-900/90 dark:shadow-black/30 sm:p-8 lg:p-10"
+        id="onboarding-section"
+        class="rounded-2xl border border-violet-200/90 bg-white/95 p-6 shadow-card backdrop-blur-sm transition-colors dark:border-midnight-600 dark:bg-midnight-800/95 dark:shadow-card-dark sm:p-8 lg:p-10"
         aria-labelledby="form-heading"
       >
         <div class="mb-8">
@@ -145,21 +182,14 @@
             <i class="fa-solid fa-clipboard-list mr-2 text-accent dark:text-accent-light" aria-hidden="true"></i
             >Başlangıç bilgileri
           </h2>
-          <p class="mt-1 text-sm text-ink-500 dark:text-ink-400">
-            Tüm alanlar zorunludur. Değerleri gerçekçi aralıklarda tutman analizi
-            iyileştirir.
+          <p class="mt-1 text-sm font-medium text-ink-600 dark:text-slate-400">
+            Tüm alanlar zorunludur. Aşağıdaki etiketlere tıklayarak ilgi alanına hızlıca ekleyebilirsin.
           </p>
         </div>
 
-        <div
-          id="api-error"
-          class="mb-6 hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200"
-          role="alert"
-        ></div>
-
         <form id="profile-form" class="space-y-6" novalidate>
           <div>
-            <label for="interests" class="mb-2 flex items-center gap-2 text-sm font-medium text-ink-800 dark:text-ink-200">
+            <label for="interests" class="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-ink-800 dark:text-slate-200">
               <i class="fa-solid fa-heart text-accent dark:text-accent-light" aria-hidden="true"></i>
               İlgi alanların
             </label>
@@ -169,26 +199,57 @@
               rows="4"
               autocomplete="off"
               maxlength="2000"
-              placeholder="Örn: doğa yürüyüşü, analog fotoğraf, seramik, kodlama side-project…"
-              class="block w-full rounded-xl border border-ink-200 bg-ink-50/50 px-4 py-3 text-base text-ink-900 placeholder:text-ink-400 transition focus:border-accent focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent/25 dark:border-ink-600 dark:bg-ink-800/50 dark:text-ink-100 dark:placeholder:text-ink-500 dark:focus:border-accent-light dark:focus:bg-ink-900 dark:focus:ring-accent-light/30"
+              placeholder="Örn: doğa yürüyüşü, analog fotoğraf, seramik, kodlama…"
+              class="block w-full rounded-xl border-2 border-violet-200/80 bg-white px-4 py-3.5 text-base text-ink-900 placeholder:text-ink-400 shadow-inner shadow-violet-100/50 transition focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/20 dark:border-midnight-600 dark:bg-midnight-900/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-accent-light dark:focus:ring-accent/25"
               aria-describedby="interests-hint interests-error"
               aria-invalid="false"
             ></textarea>
-            <p id="interests-hint" class="mt-1.5 text-xs text-ink-500 dark:text-ink-400">
-              En az birkaç kelime yaz; ne tür şeylerden hoşlandığını kısaca anlat.
+            <p id="interests-hint" class="mt-2 text-xs font-medium text-ink-600 dark:text-slate-400">
+              Önce yazabilirsin; fikre ihtiyaç duyarsan aşağıdan öneri panelini aç.
             </p>
             <p
               id="interests-error"
               class="mt-1.5 hidden text-sm font-medium text-red-600 dark:text-red-400"
               role="alert"
             ></p>
+
+            <details
+              id="interest-suggestions-details"
+              class="hb-interest-details mt-4 rounded-2xl border-2 border-violet-200/70 bg-gradient-to-br from-violet-50/90 to-white dark:border-midnight-600 dark:from-midnight-900/80 dark:to-midnight-800/50"
+            >
+              <summary
+                class="hb-interest-summary flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3.5 text-left transition hover:bg-violet-100/50 dark:hover:bg-midnight-800/60"
+              >
+                <span
+                  class="flex min-w-0 flex-1 items-center gap-2 text-sm font-bold uppercase tracking-wide text-ink-800 dark:text-slate-200"
+                >
+                  <i
+                    class="fa-solid fa-layer-group shrink-0 text-accent dark:text-accent-light"
+                    aria-hidden="true"
+                  ></i>
+                  <span class="leading-snug"
+                    >İlgi alanı önerileri <span class="hidden font-medium normal-case tracking-normal text-ink-500 sm:inline dark:text-slate-400">— kategori &amp; arama</span></span
+                  >
+                </span>
+                <i
+                  class="hb-interest-chevron fa-solid fa-chevron-down shrink-0 text-ink-500 dark:text-slate-400"
+                  aria-hidden="true"
+                ></i>
+              </summary>
+              <div
+                id="interest-suggestions-root"
+                class="border-t border-violet-200/60 px-3 pb-4 pt-1 dark:border-midnight-600 sm:px-4"
+                role="region"
+                aria-label="İlgi alanı önerileri — kategori ve arama ile filtrele"
+              ></div>
+            </details>
           </div>
 
           <div class="grid gap-6 sm:grid-cols-2">
             <div>
               <label
                 for="weekly-hours"
-                class="mb-2 flex items-center gap-2 text-sm font-medium text-ink-800 dark:text-ink-200"
+                class="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-ink-800 dark:text-slate-200"
               >
                 <i class="fa-solid fa-clock text-accent dark:text-accent-light" aria-hidden="true"></i>
                 Haftalık ayırabileceğin süre (saat)
@@ -202,11 +263,11 @@
                 step="0.5"
                 inputmode="decimal"
                 placeholder="Örn: 5"
-                class="block w-full rounded-xl border border-ink-200 bg-ink-50/50 px-4 py-3 text-base text-ink-900 placeholder:text-ink-400 transition focus:border-accent focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent/25 dark:border-ink-600 dark:bg-ink-800/50 dark:text-ink-100 dark:placeholder:text-ink-500 dark:focus:border-accent-light dark:focus:bg-ink-900 dark:focus:ring-accent-light/30"
+                class="block w-full rounded-xl border-2 border-violet-200/80 bg-white px-4 py-3.5 text-base text-ink-900 placeholder:text-ink-400 transition focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/20 dark:border-midnight-600 dark:bg-midnight-900/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-accent-light dark:focus:ring-accent/25"
                 aria-describedby="weekly-hours-hint weekly-hours-error"
                 aria-invalid="false"
               />
-              <p id="weekly-hours-hint" class="mt-1.5 text-xs text-ink-500 dark:text-ink-400">
+              <p id="weekly-hours-hint" class="mt-1.5 text-xs font-medium text-ink-600 dark:text-slate-400">
                 0,5 ile 80 saat arası (haftalık toplam).
               </p>
               <p
@@ -219,7 +280,7 @@
             <div>
               <label
                 for="monthly-budget"
-                class="mb-2 flex items-center gap-2 text-sm font-medium text-ink-800 dark:text-ink-200"
+                class="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-ink-800 dark:text-slate-200"
               >
                 <i class="fa-solid fa-wallet text-accent dark:text-accent-light" aria-hidden="true"></i>
                 Aylık bütçe (₺)
@@ -233,11 +294,11 @@
                 step="any"
                 inputmode="numeric"
                 placeholder="Örn: 1500"
-                class="block w-full rounded-xl border border-ink-200 bg-ink-50/50 px-4 py-3 text-base text-ink-900 placeholder:text-ink-400 transition focus:border-accent focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent/25 dark:border-ink-600 dark:bg-ink-800/50 dark:text-ink-100 dark:placeholder:text-ink-500 dark:focus:border-accent-light dark:focus:bg-ink-900 dark:focus:ring-accent-light/30"
+                class="block w-full rounded-xl border-2 border-violet-200/80 bg-white px-4 py-3.5 text-base text-ink-900 placeholder:text-ink-400 transition focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/20 dark:border-midnight-600 dark:bg-midnight-900/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-accent-light dark:focus:ring-accent/25"
                 aria-describedby="monthly-budget-hint monthly-budget-error"
                 aria-invalid="false"
               />
-              <p id="monthly-budget-hint" class="mt-1.5 text-xs text-ink-500 dark:text-ink-400">
+              <p id="monthly-budget-hint" class="mt-1.5 text-xs font-medium text-ink-600 dark:text-slate-400">
                 Malzeme önerileri bu tutarı aşmamaya çalışacak. 0 = bu ay ek harcama yok.
               </p>
               <p
@@ -251,7 +312,7 @@
           <div
             id="form-success"
             tabindex="-1"
-            class="hidden rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm text-accent-dark outline-none focus-visible:ring-2 focus-visible:ring-accent dark:border-accent-light/35 dark:bg-accent/15 dark:text-accent-light dark:focus-visible:ring-accent-light"
+            class="hidden rounded-xl border-2 border-accent/40 bg-accent/15 px-4 py-3 text-sm font-medium text-accent-dark outline-none focus-visible:ring-2 focus-visible:ring-accent dark:border-accent-light/50 dark:bg-accent/20 dark:text-accent-light dark:focus-visible:ring-accent-light"
             role="status"
           >
             <span class="inline-flex items-start gap-2 text-left">
@@ -264,10 +325,10 @@
           </div>
 
           <div class="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
-            <p class="text-xs text-ink-500 dark:text-ink-400">
-              <i class="fa-solid fa-shield-halved mr-1 opacity-70" aria-hidden="true"></i>
+            <p class="text-xs font-medium text-ink-600 dark:text-slate-400">
+              <i class="fa-solid fa-shield-halved mr-1 text-accent opacity-90 dark:text-accent-light" aria-hidden="true"></i>
               İstek sunucuya gider; API anahtarı tarayıcıda görünmez. Yerelde
-              <code class="rounded bg-ink-100 px-1 text-ink-700 dark:bg-ink-800 dark:text-ink-200"
+              <code class="rounded-md bg-violet-100 px-1.5 py-0.5 font-mono text-ink-800 dark:bg-midnight-700 dark:text-slate-200"
                 >npx vercel dev</code
               >
               kullan.
@@ -275,7 +336,7 @@
             <button
               type="submit"
               id="submit-btn"
-              class="hb-btn-press inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-accent/25 transition hover:bg-accent-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 dark:shadow-black/40 dark:focus-visible:ring-offset-ink-900 sm:w-auto"
+              class="hb-btn-press inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-8 py-4 text-sm font-bold text-white shadow-brand transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 dark:focus-visible:ring-offset-midnight-900 sm:w-auto"
             >
               <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
               Hobi planımı oluştur
@@ -289,24 +350,73 @@
         class="mt-12 hidden scroll-mt-24"
         aria-labelledby="results-heading"
       >
-        <h2
-          id="results-heading"
-          class="mb-6 font-display text-2xl font-bold text-ink-950 dark:text-white sm:text-3xl"
-        >
-          <i class="fa-solid fa-map-location-dot mr-2 text-accent dark:text-accent-light" aria-hidden="true"></i>
-          Senin için plan
-        </h2>
-
         <div
-          class="mb-8 rounded-2xl border border-accent/25 bg-gradient-to-br from-accent/10 to-transparent p-6 dark:border-accent-light/20 dark:from-accent/15 sm:p-8"
+          class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
+        >
+          <div id="results-heading-plan" class="min-w-0">
+            <h2
+              id="results-heading"
+              class="font-display text-2xl font-bold text-ink-950 dark:text-white sm:text-3xl"
+            >
+              <i class="fa-solid fa-map-location-dot mr-2 text-accent dark:text-accent-light" aria-hidden="true"></i>
+              Senin için plan
+            </h2>
+          </div>
+          <div id="results-heading-program" class="hidden min-w-0">
+            <p
+              class="text-xs font-bold uppercase tracking-wide text-accent-dark dark:text-accent-light"
+            >
+              Aktif program
+            </p>
+            <p
+              id="result-program-focus-hobby"
+              class="mt-1 font-display text-2xl font-bold text-ink-950 dark:text-white sm:text-3xl"
+            ></p>
+          </div>
+          <div
+            class="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end"
+          >
+            <button
+              type="button"
+              id="toggle-plan-detail-btn"
+              class="hb-btn-press hidden flex w-full items-center justify-center gap-2 rounded-xl border-2 border-violet-200/90 bg-white px-4 py-2.5 text-sm font-semibold text-ink-800 shadow-sm transition hover:border-accent/50 hover:text-accent-dark dark:border-midnight-600 dark:bg-midnight-800 dark:text-slate-200 dark:hover:border-accent-light/40 dark:hover:text-accent-light sm:inline-flex sm:w-auto"
+            >
+              <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+              <span id="toggle-plan-detail-label">Plan ve malzemeleri göster</span>
+            </button>
+            <button
+              type="button"
+              id="edit-profile-btn"
+              class="hb-btn-press inline-flex items-center justify-center gap-2 rounded-xl border-2 border-violet-200/90 bg-white px-4 py-2.5 text-sm font-semibold text-ink-800 shadow-sm transition hover:border-accent/50 hover:text-accent-dark dark:border-midnight-600 dark:bg-midnight-800 dark:text-slate-200 dark:hover:border-accent-light/40 dark:hover:text-accent-light"
+            >
+              <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+              Başlangıç bilgilerini göster
+            </button>
+          </div>
+        </div>
+
+        <div id="result-plan-detail">
+        <div
+          id="result-plan-detail-top"
+          class="result-plan-collapsible mb-8 rounded-2xl border-2 border-accent/35 bg-gradient-to-br from-accent/15 via-violet-50/50 to-transparent p-6 shadow-brand-sm dark:border-accent-light/30 dark:from-accent/20 dark:via-midnight-800/50 dark:to-transparent sm:p-8"
         >
           <p class="text-xs font-medium uppercase tracking-wide text-accent-dark dark:text-accent-light">
-            Önerilen hobi
+            Seçili hobi (bu plan buna göre)
           </p>
           <p
             id="result-hobby"
             class="mt-2 font-display text-2xl font-semibold text-ink-950 dark:text-white"
           ></p>
+          <p class="mt-4 text-sm leading-relaxed text-ink-700 dark:text-slate-300">
+            Aşağıda ilgi alanına dayalı diğer yönler de var. Farklı bir karta tıklayınca aynı süre ve
+            bütçeyle o hobi için plan, kaynaklar ve malzeme listesi yeniden üretilir.
+          </p>
+          <div
+            id="result-hobby-options"
+            class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+            role="group"
+            aria-label="Hobi seçenekleri"
+          ></div>
         </div>
 
         <div class="mb-8">
@@ -317,6 +427,18 @@
           <div id="result-weeks" class="space-y-4"></div>
         </div>
 
+        <div
+          id="result-plan-detail-bottom"
+          class="result-plan-collapsible"
+        >
+        <div id="result-learning-section" class="mb-8 hidden">
+          <h3 class="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-ink-900 dark:text-white">
+            <i class="fa-solid fa-book-open text-accent dark:text-accent-light" aria-hidden="true"></i>
+            Kitap, video ve topluluklar
+          </h3>
+          <div id="result-learning"></div>
+        </div>
+
         <div class="mb-8">
           <h3 class="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-ink-900 dark:text-white">
             <i class="fa-solid fa-basket-shopping text-accent dark:text-accent-light" aria-hidden="true"></i>
@@ -324,38 +446,163 @@
           </h3>
           <p
             id="result-budget-note"
-            class="mb-3 rounded-lg border border-ink-200 bg-ink-50/80 px-3 py-2 text-sm text-ink-700 dark:border-ink-600 dark:bg-ink-800/50 dark:text-ink-200"
+            class="mb-3 rounded-xl border border-violet-200/80 bg-violet-50/80 px-3 py-2 text-sm font-medium text-ink-800 dark:border-midnight-600 dark:bg-midnight-900/70 dark:text-slate-200"
           ></p>
           <ul
             id="result-materials"
-            class="list-none space-y-3 rounded-2xl border border-ink-200/90 bg-white p-4 dark:border-ink-700 dark:bg-ink-900/50 sm:p-5"
+            class="list-none space-y-3 rounded-2xl border-2 border-violet-200/70 bg-white p-4 dark:border-midnight-600 dark:bg-midnight-800/80 sm:p-5"
           ></ul>
-          <p id="result-materials-total" class="mt-3 text-sm font-medium text-ink-600 dark:text-ink-300"></p>
+          <p id="result-materials-total" class="mt-3 text-sm font-semibold text-ink-800 dark:text-slate-200"></p>
         </div>
 
         <div
-          class="rounded-2xl border border-ink-200/90 bg-white p-6 dark:border-ink-700 dark:bg-ink-900/50 sm:p-8"
+          id="result-program-cta"
+          class="mb-8 rounded-2xl border-2 border-dashed border-accent/40 bg-gradient-to-br from-white via-violet-50/40 to-teal-50/30 p-6 text-center shadow-sm dark:border-accent-light/35 dark:from-midnight-800/90 dark:via-midnight-800/70 dark:to-midnight-900/80 sm:p-10"
         >
-          <h3 class="mb-3 flex items-center gap-2 font-display text-lg font-semibold text-ink-900 dark:text-white">
-            <i class="fa-solid fa-seedling text-accent dark:text-accent-light" aria-hidden="true"></i>
-            Gelişim analizi
+          <div
+            class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-accent/25 via-joy-sky/20 to-joy-mint/30 text-accent-dark shadow-joy dark:text-accent-light"
+            aria-hidden="true"
+          >
+            <i class="fa-solid fa-flag-checkered text-2xl"></i>
+          </div>
+          <h3 class="font-display text-lg font-bold text-ink-950 dark:text-white sm:text-xl">
+            Dört haftalık yolculuğa hazır mısın?
           </h3>
+          <p class="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-ink-700 dark:text-slate-300">
+            Planını inceledikten sonra başlat; görevleri işaretleyebilir, isteğe bağlı mini anketlerle nabız
+            tutabilir ve özet öneriyi görürsün. Süreç rehberi yolculuk panelinde kalır.
+          </p>
+          <button
+            type="button"
+            id="start-program-btn"
+            class="hb-btn-press mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-accent via-purple-600 to-accent-dark px-8 py-3.5 text-sm font-bold text-white shadow-joy transition hover:brightness-110 hover:shadow-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 dark:from-accent dark:via-violet-500 dark:to-accent-dark dark:focus-visible:ring-offset-midnight-900"
+            aria-expanded="false"
+            aria-controls="result-journey-wrap"
+          >
+            <i class="fa-solid fa-play" aria-hidden="true"></i>
+            Programı başlat
+          </button>
+        </div>
+        </div>
+        </div>
+
+        <div
+          id="result-journey-wrap"
+          class="hidden scroll-mt-24 rounded-2xl border-2 border-violet-200/80 bg-white p-6 dark:border-midnight-600 dark:bg-midnight-800/90 sm:p-8"
+        >
+          <div
+            class="mb-4 inline-flex items-center gap-2 rounded-full border border-joy-mint/40 bg-joy-mint/15 px-3 py-1 text-xs font-bold uppercase tracking-wide text-ink-800 dark:border-joy-mint/30 dark:bg-joy-mint/10 dark:text-slate-200"
+          >
+            <i class="fa-solid fa-person-hiking" aria-hidden="true"></i>
+            Yolculuk modu
+          </div>
+          <h3 class="mb-3 flex items-center gap-2 font-display text-lg font-semibold text-ink-900 dark:text-white">
+            <i class="fa-solid fa-clipboard-check text-accent dark:text-accent-light" aria-hidden="true"></i>
+            Dört haftalık süreç ve sonrası
+          </h3>
+          <p class="mb-3 text-xs text-ink-600 dark:text-slate-400">
+            Bu metin şu anki tahmin değil; dört haftayı takip ederken ve bittiğinde kendini
+            değerlendirmen için çerçeve. İleride memnuniyetine göre yeni bir yol için formu güncelleyip
+            tekrar plan alabilirsin.
+          </p>
+
+          <div
+            id="journey-tracker"
+            class="mb-6 hidden rounded-2xl border-2 border-violet-200/70 bg-gradient-to-br from-violet-50/80 to-white p-5 dark:border-midnight-600 dark:from-midnight-900/50 dark:to-midnight-800/80 sm:p-6"
+          >
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div class="min-w-0 flex-1">
+                <p class="text-xs font-bold uppercase tracking-wide text-accent-dark dark:text-accent-light">
+                  4 haftalık takip
+                </p>
+                <p
+                  id="journey-week-label"
+                  class="mt-1 font-display text-lg font-semibold text-ink-950 dark:text-white"
+                ></p>
+                <div class="mt-3 h-3 w-full overflow-hidden rounded-full bg-violet-200/80 dark:bg-midnight-700">
+                  <div
+                    id="journey-progress-fill"
+                    class="h-full max-w-full rounded-full bg-gradient-to-r from-accent to-violet-600 transition-all duration-500 dark:from-accent-light dark:to-violet-400"
+                  ></div>
+                </div>
+                <p
+                  id="journey-task-count"
+                  class="mt-2 text-sm font-medium text-ink-700 dark:text-slate-300"
+                ></p>
+              </div>
+              <div class="flex shrink-0 gap-3 sm:gap-4">
+                <div
+                  class="rounded-xl border border-violet-200/80 bg-white/90 px-4 py-3 text-center dark:border-midnight-600 dark:bg-midnight-900/60"
+                >
+                  <p class="text-[10px] font-bold uppercase tracking-wide text-ink-500 dark:text-slate-400">
+                    Puan
+                  </p>
+                  <p
+                    id="journey-xp"
+                    class="font-display text-2xl font-bold text-accent-dark dark:text-accent-light"
+                  >
+                    0
+                  </p>
+                  <p id="journey-tier" class="text-xs text-ink-600 dark:text-slate-400"></p>
+                </div>
+                <div
+                  class="rounded-xl border border-violet-200/80 bg-white/90 px-4 py-3 text-center dark:border-midnight-600 dark:bg-midnight-900/60"
+                >
+                  <p class="text-[10px] font-bold uppercase tracking-wide text-ink-500 dark:text-slate-400">
+                    Katılım
+                  </p>
+                  <p
+                    id="journey-streak"
+                    class="font-display text-2xl font-bold text-teal-700 dark:text-teal-300"
+                  >
+                    0
+                  </p>
+                  <p class="text-xs text-ink-600 dark:text-slate-400">hafta / 4</p>
+                </div>
+              </div>
+            </div>
+            <p class="mt-3 text-xs leading-relaxed text-ink-600 dark:text-slate-400">
+              Görevleri işaretlemek yerel cihazında kalır. Haftalık mini anket tamamen isteğe bağlıdır; atlamak
+              da geçerli bir seçim.
+            </p>
+          </div>
+
+          <div
+            id="journey-insight-card"
+            class="mb-6 hidden rounded-2xl border-2 border-dashed border-accent/35 bg-white/90 p-5 dark:border-accent-light/30 dark:bg-midnight-900/60 sm:p-6"
+          >
+            <h4
+              id="journey-insight-title"
+              class="font-display text-base font-semibold text-ink-950 dark:text-white"
+            ></h4>
+            <p
+              id="journey-insight-body"
+              class="mt-2 text-sm leading-relaxed text-ink-700 dark:text-slate-300"
+            ></p>
+            <ul
+              id="journey-insight-bullets"
+              class="mt-3 list-inside list-disc space-y-1 text-sm text-ink-800 dark:text-slate-200"
+            ></ul>
+            <div id="journey-insight-actions" class="mt-4 flex flex-wrap gap-2"></div>
+          </div>
+
           <div
             id="result-analysis"
-            class="max-w-none whitespace-pre-wrap text-sm leading-relaxed text-ink-700 dark:text-ink-200"
+            class="max-w-none whitespace-pre-wrap text-sm leading-relaxed text-ink-800 dark:text-slate-200"
           ></div>
         </div>
       </section>
     </main>
 
     <footer
-      class="border-t border-ink-200/80 bg-white/60 py-8 text-center text-sm text-ink-500 transition-colors dark:border-ink-800 dark:bg-ink-950/60 dark:text-ink-400"
+      class="border-t border-violet-200/70 bg-white/80 py-8 text-center text-sm font-medium text-ink-600 transition-colors dark:border-midnight-600 dark:bg-midnight-900/80 dark:text-slate-400"
     >
       <p>
         <i class="fa-solid fa-heart-pulse mr-1 text-accent/80 dark:text-accent-light/80" aria-hidden="true"></i>
         HobbyBuddy AI — MVP arayüzü
       </p>
     </footer>
+    </div>
 
     <div
       id="loading-overlay"
@@ -372,7 +619,7 @@
       ></div>
       <div class="relative flex min-h-full flex-col items-center justify-center p-6">
         <div
-          class="w-full max-w-md rounded-2xl border border-white/20 bg-white/95 p-8 shadow-2xl shadow-ink-900/20 dark:border-ink-600 dark:bg-ink-900/95 dark:shadow-black/50"
+          class="w-full max-w-md rounded-2xl border-2 border-violet-200/50 bg-white/98 p-8 shadow-2xl shadow-brand dark:border-midnight-600 dark:bg-midnight-800/98 dark:shadow-card-dark"
         >
           <div class="flex flex-col items-center">
             <lottie-player

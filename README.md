@@ -4,23 +4,26 @@ HobbyBuddy AI: Hobisizleşme sorununa karşı yapay zeka destekli, kişiselleşt
 
 #AIBuildathon
 
-## Bu proje nasıl çalışıyor? (Faz 2 özeti)
+## Bu proje nasıl çalışıyor?
 
-1. **Tarayıcı** yalnızca form verisini sunucuya gönderir. **Google Gemini API anahtarı asla istemciye gitmez.**
-2. **Vercel Serverless** fonksiyonu `api/analyze.js` ortam değişkeninden `GEMINI_API_KEY` okur, Gemini’ye yapılandırılmış JSON (şema) ile istek atar.
-3. Dönen plan (önerilen hobi, 4 hafta, malzemeler, analiz) JSON olarak parse edilir ve sayfada gösterilir.
+1. **Tarayıcı** formu ve (isteğe bağlı) program takip verisini kullanır; **Gemini API anahtarı istemciye gelmez.**
+2. **`api/analyze.js`** — `GEMINI_API_KEY` ile Gemini’ye yapılandırılmış JSON (şema) isteği; yanıtta hobi seçenekleri, 4 hafta, kaynaklar, malzemeler ve yolculuk rehberi metni üretilir. İsteğe bağlı gövde alanları: önceki program özeti (`programFeedback`), yol sonrası istek (`journeyContinuation`: `advance` | `pivot`).
+3. **`api/verify-urls.js`** — Sonuçtaki dış bağlantılar için sunucudan HEAD/GET kontrolü (ölü linkleri metne çevirmek için).
+4. **Ön yüz** — `js/app.js` + `js/program-tracking.js`: son plan ve form özeti `localStorage`’da saklanır; kullanıcı “Programı başlat” ile 4 haftayı **sırayla** açılan görevler, isteğe bağlı mini anket (1–5 + serbest yorum), basit puan/özet ve yol **%100 bitince** “ileri seviye plan” / “farklı hobi yönü” ile yeni analiz isteğini yönetir.
 
-Yerelde yalnızca `npx serve .` çalıştırırsan `/api/analyze` yolu olmadığı için istek başarısız olur; aşağıdaki **Vercel CLI** adımını kullan.
+Yerelde yalnızca `npx serve .` kullanırsan `/api/*` olmadığı için AI ve link doğrulama çalışmaz; **`npx vercel dev`** kullan.
 
 ## Proje yapısı
 
 | Yol | Açıklama |
 |-----|----------|
-| `index.html` | Arayüz |
+| `index.html` | Arayüz (Tailwind CDN, tek sayfa) |
 | `css/custom.css` | Yardımcı stiller |
-| `js/app.js` | Form, tema, `/api/analyze` çağrısı, sonuç render |
-| `api/analyze.js` | Gemini proxy (sunucu tarafı) |
-| `vercel.json` | Sunucu fonksiyonu süre limiti (ücretli planda daha uzun) |
+| `js/app.js` | Form, tema, API çağrıları, sonuç ve program modu UI |
+| `js/program-tracking.js` | Yerel takip: görevler, anket, özet, API geri bildirim metni |
+| `api/analyze.js` | Gemini proxy |
+| `api/verify-urls.js` | Dış URL doğrulama |
+| `vercel.json` | Sunucu fonksiyonu süre limiti vb. |
 | `.env.example` | Ortam değişkeni şablonu |
 
 ## Kurulum (adım adım)
@@ -71,8 +74,9 @@ Tarayıcıda CLI’nin verdiği adresi aç (genelde `http://localhost:3000`). Fo
 
 ### 5) Model / süre notları
 
-- Varsayılan model `api/analyze.js` içinde `gemini-2.0-flash`. Erişim hatası alırsan aynı dosyada `MODEL` değerini örneğin `gemini-1.5-flash` yapmayı dene.
-- Vercel **Hobby** planda sunucu fonksiyonu süresi kısıtlı olabilir; yavaş yanıtta zaman aşımı yaşanırsa plan yükseltme veya daha hızlı model kullanma gerekebilir.
+- Gemini çağrısı **REST v1beta** (yapılandırılmış JSON + `systemInstruction`). Varsayılan model `gemini-2.5-flash`. İstersen `GEMINI_MODEL` / `GEMINI_API_VERSION` ile override et.
+- İstemci tarafında analiz isteği için hedef zaman aşımı yaklaşık **55 sn** (zengin JSON yanıtları için); ağ veya model yavaşsa tekrar denemek gerekebilir.
+- Vercel **Hobby** planda sunucu fonksiyonu süresi kısıtlı olabilir; üretimde süre/limitleri kontrol et.
 
 ## Sadece statik önizleme (API olmadan)
 

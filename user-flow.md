@@ -6,10 +6,13 @@ Bu doküman, kullanıcının uygulamada izlediği ana yolu tanımlar. Ürün viz
 
 ## Ana akış (özet)
 
-1. **Giriş** — Kullanıcı temiz ve modern arayüzle karşılanır.
-2. **Girdi** — İlgi alanları, haftalık ayırabileceği saat ve aylık bütçe girilir.
-3. **Analiz** — Sistem bu verileri Gemini API’ye iletir; yapay zeka hobi eşleşmesi ve planı üretir.
-4. **Çıktı** — 4 haftalık adım adım plan, bütçeye uygun malzeme listesi ve gelişim / motivasyon analizi gösterilir.
+1. **Giriş** — Arayüz ve kısa ürün mesajı.
+2. **Girdi** — İlgi alanları, haftalık süre, aylık bütçe (doğrulama).
+3. **Analiz** — `POST /api/analyze` ile Gemini; yapılandırılmış plan.
+4. **Çıktı** — Hobi seçenekleri, 4 haftalık görevler, kaynaklar, malzemeler, yolculuk rehberi; isteğe bağlı link doğrulama (`/api/verify-urls`).
+5. **Program** — “Programı başlat” ile yerel takip: haftalar **sırayla** açılır, görev checkbox’ları, isteğe bağlı anket (ölçek + serbest yorum), özet kartı.
+6. **Yol sonu** — Tüm görevler bitince: **ileri seviye** veya **farklı hobi yönü** için yeni analiz (aynı form özetiyle; sunucuya özet metin gider).
+7. **Dönüş** — Son plan ve form özeti saklanır; uygun zamanda sayfa yenilense sonuç geri gelir.
 
 ---
 
@@ -35,20 +38,24 @@ Doğrulama: boş alan, mantıksız değerler (ör. negatif bütçe) engellenir v
 
 ### 3. Analiz (Arka plan)
 
-- Form gönderilir; istemci veriyi güvenli bir uç noktaya (ör. Vercel serverless) iletir.
-- Sunucu Gemini API’yi çağırır; prompt’ta kullanıcı verileri ve beklenen çıktı yapısı (plan, liste, rapor) tanımlıdır.
-- Yükleme durumu kullanıcıya gösterilir (ör. “Plan hazırlanıyor…”).
+- İstemci `POST /api/analyze` ile JSON gönderir (ilgi, süre, bütçe; isteğe bağlı `chosenHobby`, `programFeedback`, `journeyContinuation`).
+- Sunucu Gemini’yi yapılandırılmış şema ile çağırır.
+- Yükleme katmanı ve hata mesajları kullanıcıya gösterilir.
 
 ### 4. Çıktı (Sonuç ekranı)
 
-Kullanıcı sırayla veya sekmelerle şunları görür:
+- **Hobi seçenekleri** — Kartlarla alternatifler; tıklanınca aynı profille o hobi için yeni plan.
+- **4 haftalık yol haritası** — Program başlamadan tüm haftalar okunur; program başlayınca haftalar sırayla açılır.
+- **Kaynaklar ve malzemeler** — Plan detayında; program modunda detay kısmen daraltılabilir.
+- **Yolculuk paneli** — Program başlayınca: ilerleme, puan, özet metin; tamamlanınca yeni plan düğmeleri.
 
-- **Önerilen hobi** — Kısa gerekçe ile birlikte.
-- **4 haftalık yol haritası** — Hafta hafta somut görevler.
-- **Malzeme listesi** — Bütçeyi aşmayan temel ihtiyaçlar.
-- **Gelişim analizi** — Bu hobide neden ilerleyebileceğine dair motivasyonel özet.
+Yeni tam analiz: formdan “Hobi planımı oluştur” veya yol sonu düğmeleri.
 
-İsteğe bağlı sonraki adımlar (MVP dışı): yeni sorgu, planı paylaşma, yazdırma.
+### 5. Program (yolculuk) detayı
+
+- Aktif program yalnızca seçilen hobiyle eşleşen planda geçerlidir.
+- Önceki haftanın tüm görevleri bitmeden sonraki hafta içeriği gösterilmez (kilit mesajı).
+- Anket zorunlu değildir; kaydedilen yorumlar özet ve API geri bildirim metnine eklenir.
 
 ---
 
@@ -56,17 +63,23 @@ Kullanıcı sırayla veya sekmelerle şunları görür:
 
 ```mermaid
 flowchart LR
-  A[Giriş] --> B[Form: ilgi, süre, bütçe]
+  A[Giriş] --> B[Form]
   B --> C{Doğrulama}
   C -->|Geçersiz| B
-  C -->|Geçerli| D[Gemini analizi]
-  D --> E[Plan + malzeme + rapor]
+  C -->|Geçerli| D["/api/analyze"]
+  D --> E[Plan + malzeme + rehber]
+  E --> F{Program başlat?}
+  F -->|Hayır| E
+  F -->|Evet| G[Sıralı hafta + görevler]
+  G --> H{Tüm görevler bitti mi?}
+  H -->|Hayır| G
+  H -->|Evet| I["İleri / farklı yön → analyze"]
 ```
 
 ---
 
 ## Kenar durumlar
 
-- **API hatası / zaman aşımı:** Anlaşılır hata mesajı ve tekrar dene.
-- **Yavaş yanıt:** İlerleme veya bekleme göstergesi; PRD hedefi ~30 saniye civarı tutarlı çıktı.
-- **Mobil:** Aynı akış, dokunmatik uyumlu form ve kaydırılabilir sonuç düzeni.
+- **API hatası / zaman aşımı:** Kullanıcıya kısa mesaj; analiz için istemde ~55 sn zaman aşımı hedefi.
+- **Sadece statik sunucu:** `npx serve` ile `/api/*` yok; tam akış için `vercel dev`.
+- **Mobil:** Aynı akış; dokunmatik uyumlu form ve kaydırılabilir sonuç.
