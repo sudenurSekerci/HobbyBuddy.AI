@@ -10,7 +10,8 @@ node_modules/
 # OS & editors
 .DS_Store
 Thumbs.db
-.vscode/
+.vscode/*
+!.vscode/settings.json
 .idea/
 
 # Logs & build artifacts
