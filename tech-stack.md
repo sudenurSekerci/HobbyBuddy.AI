@@ -9,9 +9,9 @@ Projede kullanılan teknolojiler ve rolleri.
 | Teknoloji | Rol |
 |-----------|-----|
 | **HTML** | Tek sayfa yapı, anlamsal bölgeler, form ve sonuç alanları |
-| **Tailwind CSS** | CDN üzerinden utility-first düzen (koyu/açık tema ile) |
+| **Tailwind CSS** | CDN üzerinden utility-first düzen (koyu tema) |
 | **CSS** | `custom.css` ile ek yardımcı stiller |
-| **JavaScript (ES modül)** | `app.js`: form, tema, `/api/analyze` ve `/api/verify-urls`, sonuç ve program UI |
+| **JavaScript (ES modül)** | `app.js`: form, `/api/analyze` ve `/api/verify-urls`, sonuç, program ve rozet UI |
 | **JavaScript** | `program-tracking.js`: yerel depolama (son plan, form özeti, görev/anket ilerlemesi), özet metinleri |
 | **Gemini API** | Yapılandırılmış JSON plan üretimi (`api/analyze.js`) |
 | **Cursor** | Geliştirme ortamı |
@@ -23,9 +23,9 @@ Projede kullanılan teknolojiler ve rolleri.
 
 ### İstemci (tarayıcı)
 
-- **HTML + Tailwind + vanilla JS** — Tek sayfa; giriş, sonuç, program (yolculuk) modu.
+- **HTML + Tailwind + vanilla JS** — Tek sayfa; giriş, sonuç, program (yolculuk) modu; haftalık sihirbaz, rozet çekmecesi ve rozet bildirimi için `custom.css` animasyonları.
 - API anahtarı tarayıcıda yok; istekler `api/analyze` ve `api/verify-urls` üzerinden gider.
-- **localStorage** — Son plan, form özeti, aktif program ve görev/anket durumu (sunucuya yazılmaz).
+- **localStorage** — Son plan, form özeti, aktif program, görev/anket durumu ve rozet ilerlemesi (sunucuya yazılmaz).
 
 ### Yapay zeka
 

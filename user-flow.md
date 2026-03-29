@@ -10,8 +10,8 @@ Bu doküman, kullanıcının uygulamada izlediği ana yolu tanımlar. Ürün viz
 2. **Girdi** — İlgi alanları, haftalık süre, aylık bütçe (doğrulama).
 3. **Analiz** — `POST /api/analyze` ile Gemini; yapılandırılmış plan.
 4. **Çıktı** — Hobi seçenekleri, 4 haftalık görevler, kaynaklar, malzemeler, yolculuk rehberi; isteğe bağlı link doğrulama (`/api/verify-urls`).
-5. **Program** — “Programı başlat” ile yerel takip: haftalar **sırayla** açılır, görev checkbox’ları, isteğe bağlı anket (ölçek + serbest yorum), özet kartı.
-6. **Yol sonu** — Tüm görevler bitince: **ileri seviye** veya **farklı hobi yönü** için yeni analiz (aynı form özetiyle; sunucuya özet metin gider).
+5. **Program** — “Programı başlat” ile yerel takip: **aktif hafta sihirbazı** — önce o haftanın görevleri, görevler bitince nabız anketi, sonra bir sonraki hafta. **Geri** ile tamamlanmış haftalara salt okunur bakış. **Rozetler** üst çubuktan; yeni rozet ortada kısa bildirim (bulanık arka plan).
+6. **Yol sonu** — Dört hafta ve anketler tamamlanınca özet/analiz; **ileri seviye** veya **farklı hobi yönü** için yeni analiz (aynı form özetiyle; sunucuya özet metin gider).
 7. **Dönüş** — Son plan ve form özeti saklanır; uygun zamanda sayfa yenilense sonuç geri gelir.
 
 ---
@@ -45,9 +45,9 @@ Doğrulama: boş alan, mantıksız değerler (ör. negatif bütçe) engellenir v
 ### 4. Çıktı (Sonuç ekranı)
 
 - **Hobi seçenekleri** — Kartlarla alternatifler; tıklanınca aynı profille o hobi için yeni plan.
-- **4 haftalık yol haritası** — Program başlamadan tüm haftalar okunur; program başlayınca haftalar sırayla açılır.
-- **Kaynaklar ve malzemeler** — Plan detayında; program modunda detay kısmen daraltılabilir.
-- **Yolculuk paneli** — Program başlayınca: ilerleme, puan, özet metin; tamamlanınca yeni plan düğmeleri.
+- **4 haftalık yol haritası** — Program başlamadan dört haftanın özeti listelenir; program başlayınca ekranda **yalnızca ilgili haftanın** görev/anket akışı (sihirbaz); geçmiş haftalar **Geri** ile görüntülenir.
+- **Kaynaklar ve malzemeler** — Plan detayında; program modunda haftaya göre daraltılabilir / katlanabilir bölümler.
+- **Yolculuk paneli** — Program başlayınca: hafta gezgini (Geri/İleri), aşama etiketi (görevler / nabız / tamam); yol tamamlanınca analiz ve yeni plan düğmeleri.
 
 Yeni tam analiz: formdan “Hobi planımı oluştur” veya yol sonu düğmeleri.
 
@@ -70,10 +70,12 @@ flowchart LR
   D --> E[Plan + malzeme + rehber]
   E --> F{Program başlat?}
   F -->|Hayır| E
-  F -->|Evet| G[Sıralı hafta + görevler]
-  G --> H{Tüm görevler bitti mi?}
-  H -->|Hayır| G
-  H -->|Evet| I["İleri / farklı yön → analyze"]
+  F -->|Evet| G[Hafta: görevler]
+  G --> H[Nabız anketi]
+  H --> I{4 hafta bitti mi?}
+  I -->|Hayır| G
+  I -->|Evet| J[Özet / analiz]
+  J --> K["İleri / farklı yön → analyze"]
 ```
 
 ---

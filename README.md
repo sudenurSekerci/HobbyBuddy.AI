@@ -1,6 +1,6 @@
 # HobbyBuddy.AI
 
-HobbyBuddy AI: Hobisizleşme sorununa karşı yapay zeka destekli, kişiselleştirilmiş 4 haftalık yol haritası ve bütçe dostu malzeme asistanı.
+HobbyBuddy AI: Hobisizleşme sorununa karşı yapay zeka destekli, kişiselleştirilmiş 4 haftalık yol haritası sunan, gamification prensiplerini benimsemiş bir hobi edinme aracıdır.
 
 #AIBuildathon
 
@@ -9,7 +9,7 @@ HobbyBuddy AI: Hobisizleşme sorununa karşı yapay zeka destekli, kişiselleşt
 1. **Tarayıcı** formu ve (isteğe bağlı) program takip verisini kullanır; **Gemini API anahtarı istemciye gelmez.**
 2. **`api/analyze.js`** — `GEMINI_API_KEY` ile Gemini’ye yapılandırılmış JSON (şema) isteği; yanıtta hobi seçenekleri, 4 hafta, kaynaklar, malzemeler ve yolculuk rehberi metni üretilir. İsteğe bağlı gövde alanları: önceki program özeti (`programFeedback`), yol sonrası istek (`journeyContinuation`: `advance` | `pivot`).
 3. **`api/verify-urls.js`** — Sonuçtaki dış bağlantılar için sunucudan HEAD/GET kontrolü (ölü linkleri metne çevirmek için).
-4. **Ön yüz** — `js/app.js` + `js/program-tracking.js`: son plan ve form özeti `localStorage`’da saklanır; kullanıcı “Programı başlat” ile 4 haftayı **sırayla** açılan görevler, isteğe bağlı mini anket (1–5 + serbest yorum), basit puan/özet ve yol **%100 bitince** “ileri seviye plan” / “farklı hobi yönü” ile yeni analiz isteğini yönetir.
+4. **Ön yüz** — `js/app.js` + `js/program-tracking.js`: son plan ve form özeti `localStorage`’da saklanır. “Programı başlat” sonrası **yolculuk sihirbazı**: her haftada önce görevler, görevler bitince haftalık nabız anketi, ardından bir sonraki hafta; **Geri** ile tamamlanmış haftalara salt okunur bakış. **Rozetler** (kazanılan/kazanılabilir) üst çubuktan panelde; yeni rozet kazanıldığında ortada bildirim ve bulanık arka plan. Dört hafta + anketler tamamlanınca **özet/analiz** ve “ileri seviye plan” / “farklı hobi yönü” ile yeni analiz isteği.
 
 Yerelde yalnızca `npx serve .` kullanırsan `/api/*` olmadığı için AI ve link doğrulama çalışmaz; **`npx vercel dev`** kullan.
 
@@ -19,7 +19,7 @@ Yerelde yalnızca `npx serve .` kullanırsan `/api/*` olmadığı için AI ve li
 |-----|----------|
 | `index.html` | Arayüz (Tailwind CDN, tek sayfa) |
 | `css/custom.css` | Yardımcı stiller |
-| `js/app.js` | Form, tema, API çağrıları, sonuç ve program modu UI |
+| `js/app.js` | Form, arayüz, API çağrıları, sonuç ve program modu (yolculuk, rozetler) |
 | `js/program-tracking.js` | Yerel takip: görevler, anket, özet, API geri bildirim metni |
 | `api/analyze.js` | Gemini proxy |
 | `api/verify-urls.js` | Dış URL doğrulama |

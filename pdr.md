@@ -13,14 +13,14 @@ HobbyBuddy AI, günümüzün "hobisizleşme" sorununa karşı; kullanıcıların
 2. **Input:** İlgi alanları, haftalık süre, aylık bütçe (doğrulamalı form).
 3. **Analiz:** Sunucu üzerinden Gemini; yapılandırılmış plan (hobi seçenekleri, önerilen hobi, 4 hafta, kaynaklar, malzemeler, yolculuk rehberi).
 4. **Çıktı:** Plan, malzemeler ve rehber metni; isteğe bağlı hobi kartı ile aynı profille yeniden plan.
-5. **Program (yolculuk):** Kullanıcı programı başlatır; haftalar sırayla açılır, görevler ve isteğe bağlı anket yerelde tutulur. Yol tamamlanınca ileri seviye veya farklı yön için yeni analiz istenebilir.
+5. **Program (yolculuk):** Kullanıcı programı başlatır; her haftada önce görevler, görevler bitince nabız anketi, sonra bir sonraki hafta. Geçmiş haftalara geri gidilebilir (salt okunur). Rozetler yerelde izlenir; yol tamamlanınca özet/analiz ve ileri seviye veya farklı yön için yeni analiz istenebilir.
 
 ## 4. Temel Özellikler (Features)
 * **AI Hobi Eşleştirme:** İlgi, süre ve bütçeye göre hobi seçenekleri ve varsayılan öneri.
 * **4 Haftalık Yol Haritası:** Haftalık görevler ve haftalık kaynak linkleri (sunucu tarafı URL dürüstlük kuralları).
 * **Akıllı Malzeme Asistanı:** Bütçe bağlamında malzeme listesi (tahmini tutar notları).
 * **Yolculuk rehberi:** `journeyReflectionGuide` — süreç / öz-değerlendirme çerçevesi (kesin teşhis iddiası taşımaz).
-* **Program takibi:** Sıralı hafta kilidi, görev tamamlama, isteğe bağlı mini anket (ölçek + serbest yorum), yerel özet; yol sonu yeni plan tetikleyicileri.
+* **Program takibi ve oyunlaştırma:** Haftalık sihirbaz (görevler → anket → sonraki hafta), sıralı hafta kilidi, görev tamamlama, isteğe bağlı mini anket (ölçek + serbest yorum), rozetler (panel + kazanım bildirimi), yerel özet; yol sonu yeni plan tetikleyicileri.
 * **Bağlantı doğrulama:** Sonuç linklerinde isteğe bağlı sunucu kontrolü.
 
 ## 5. Teknik Gereksinimler (Tech Stack)
@@ -33,4 +33,4 @@ HobbyBuddy AI, günümüzün "hobisizleşme" sorununa karşı; kullanıcıların
 * Formun sorunsuz çalışması ve verilerin güvenli API katmanına iletilmesi.
 * Tutarlı 4 haftalık plan ve malzeme çıktısı (yanıt süresi ağ/model ile değişebilir; istemde ~55 sn hedef zaman aşımı).
 * Mobil uyumlu (responsive) arayüz.
-* Program modunda sıralı hafta ve yerel takibin çalışması; yol sonunda yeni plan isteğinin mümkün olması.
+* Program modunda haftalık sihirbaz, sıralı hafta, rozetler ve yerel takibin çalışması; yol sonunda özet ve yeni plan isteğinin mümkün olması.
