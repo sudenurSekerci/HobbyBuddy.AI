@@ -2,7 +2,8 @@
 
 HobbyBuddy AI: Hobisizleşme sorununa karşı yapay zeka destekli, kişiselleştirilmiş 4 haftalık yol haritası sunan, gamification prensiplerini benimsemiş bir hobi edinme aracıdır.
 
-#AIBuildathon
+Yayın Linki: https://hobbybuddyai.vercel.app/
+Loom Linki
 
 ## Bu proje nasıl çalışıyor?
 
