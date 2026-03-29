@@ -9,21 +9,23 @@ HobbyBuddy AI: Hobisizleşme sorununa karşı yapay zeka destekli, kişiselleşt
 1. **Tarayıcı** formu ve (isteğe bağlı) program takip verisini kullanır; **Gemini API anahtarı istemciye gelmez.**
 2. **`api/analyze.js`** — `GEMINI_API_KEY` ile Gemini’ye yapılandırılmış JSON (şema) isteği; yanıtta hobi seçenekleri, 4 hafta, kaynaklar, malzemeler ve yolculuk rehberi metni üretilir. İsteğe bağlı gövde alanları: önceki program özeti (`programFeedback`), yol sonrası istek (`journeyContinuation`: `advance` | `pivot`).
 3. **`api/verify-urls.js`** — Sonuçtaki dış bağlantılar için sunucudan HEAD/GET kontrolü (ölü linkleri metne çevirmek için).
-4. **Ön yüz** — `js/app.js` + `js/program-tracking.js`: son plan ve form özeti `localStorage`’da saklanır. “Programı başlat” sonrası **yolculuk sihirbazı**: her haftada önce görevler, görevler bitince haftalık nabız anketi, ardından bir sonraki hafta; **Geri** ile tamamlanmış haftalara salt okunur bakış. **Rozetler** (kazanılan/kazanılabilir) üst çubuktan panelde; yeni rozet kazanıldığında ortada bildirim ve bulanık arka plan. Dört hafta + anketler tamamlanınca **özet/analiz** ve “ileri seviye plan” / “farklı hobi yönü” ile yeni analiz isteği.
+4. **Ön yüz** — `features/js/app.js` + `features/js/program-tracking.js`: son plan ve form özeti `localStorage`’da saklanır. “Programı başlat” sonrası **yolculuk sihirbazı**: her haftada önce görevler, görevler bitince haftalık nabız anketi, ardından bir sonraki hafta; **Geri** ile tamamlanmış haftalara salt okunur bakış. **Rozetler** (kazanılan/kazanılabilir) üst çubuktan panelde; yeni rozet kazanıldığında ortada bildirim ve bulanık arka plan. Dört hafta + anketler tamamlanınca **özet/analiz** ve “ileri seviye plan” / “farklı hobi yönü” ile yeni analiz isteği.
 
-Yerelde yalnızca `npx serve .` kullanırsan `/api/*` olmadığı için AI ve link doğrulama çalışmaz; **`npx vercel dev`** kullan.
+Yerelde tam akış için **`npx vercel dev`** kullan (kökten çalıştır; `vercel.json` kök URL’leri `features/` altındaki statik dosyalara yönlendirir, `api/*` kökte kalır). Yalnızca `npx serve .` kullanırsan kökte `index.html` olmadığı için site açılmaz; sadece arayüz denemek için bkz. aşağı.
 
 ## Proje yapısı
 
 | Yol | Açıklama |
 |-----|----------|
-| `index.html` | Arayüz (Tailwind CDN, tek sayfa) |
-| `css/custom.css` | Yardımcı stiller |
-| `js/app.js` | Form, arayüz, API çağrıları, sonuç ve program modu (yolculuk, rozetler) |
-| `js/program-tracking.js` | Yerel takip: görevler, anket, özet, API geri bildirim metni |
-| `api/analyze.js` | Gemini proxy |
+| `features/index.html` | Arayüz (Tailwind CDN, tek sayfa) |
+| `features/css/custom.css` | Yardımcı stiller |
+| `features/js/app.js` | Form, arayüz, API çağrıları, sonuç ve program modu (yolculuk, rozetler) |
+| `features/js/program-tracking.js` | Yerel takip: görevler, anket, özet, API geri bildirim metni |
+| `features/img/` | Logo ve görseller |
+| `api/analyze.js` | Gemini proxy (repo kökünde; Vercel `api/*` kuralı) |
 | `api/verify-urls.js` | Dış URL doğrulama |
-| `vercel.json` | Sunucu fonksiyonu süre limiti vb. |
+| `docs/` | Ürün dokümantasyonu (`.md`, `README` hariç) |
+| `vercel.json` | `api` süresi + kök → `features/` yönlendirmeleri |
 | `.env.example` | Ortam değişkeni şablonu |
 
 ## Kurulum (adım adım)
@@ -81,10 +83,10 @@ Tarayıcıda CLI’nin verdiği adresi aç (genelde `http://localhost:3000`). Fo
 ## Sadece statik önizleme (API olmadan)
 
 ```bash
-npx --yes serve .
+npx --yes serve features
 ```
 
-Bu modda **AI çağrısı çalışmaz**; yalnızca arayüzü kontrol etmek içindir.
+Bu modda **AI çağrısı çalışmaz** (`/api/*` yok); yalnızca arayüzü kontrol etmek içindir. Tam akış için yine `npx vercel dev` kullan.
 
 ## Git
 

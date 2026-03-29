@@ -1,4 +1,10 @@
 {
+  "rewrites": [
+    { "source": "/", "destination": "/features/index.html" },
+    { "source": "/css/:path*", "destination": "/features/css/:path*" },
+    { "source": "/js/:path*", "destination": "/features/js/:path*" },
+    { "source": "/img/:path*", "destination": "/features/img/:path*" }
+  ],
   "functions": {
     "api/analyze.js": {
       "maxDuration": 60

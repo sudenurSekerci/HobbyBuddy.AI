@@ -25,4 +25,4 @@ Bu dosya eski faz bazlı “yapılacaklar” listesinin yerini alır: **tamamlan
 
 ## Dokümantasyon
 
-- Akış ve ürün özeti: `user-flow.md`, `pdr.md`, `idea.md`, `tech-stack.md`, `README.md`.
+- Akış ve ürün özeti: bu klasördeki `user-flow.md`, `pdr.md`, `idea.md`, `tech-stack.md` ve kökteki `README.md`.
