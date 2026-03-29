@@ -559,3 +559,122 @@ export function buildJourneyContinuationFeedback(plan, progress, intent) {
       : "Kullanıcı isteği: FARKLI hobi veya yön (önceki seçili hobiden ayrışan) yeni öneriler ve 4 haftalık plan.";
   return `${base} ${tag}`;
 }
+
+/**
+ * Tamamlanmış hafta sayısı (o haftadaki tüm görevler işaretli).
+ * @param {object} plan
+ * @param {object | null} progress
+ */
+export function countCompletedWeeks(plan, progress) {
+  const sorted = [...(Array.isArray(plan?.weeks) ? plan.weeks : [])].sort(
+    (a, b) => (a.weekNumber || 0) - (b.weekNumber || 0)
+  );
+  let n = 0;
+  sorted.forEach((_, wi) => {
+    if (weekFullyComplete(sorted, progress, wi)) n += 1;
+  });
+  return n;
+}
+
+/**
+ * Sihirbaz akışı: görevler → haftalık nabız → sonraki hafta; tüm haftalar bitince `complete`.
+ * @param {object} plan
+ * @param {object | null} progress
+ * @returns {{ week: number, phase: "tasks" | "pulse" | "complete" }}
+ */
+export function getJourneyAutoStage(plan, progress) {
+  const sorted = [...(Array.isArray(plan?.weeks) ? plan.weeks : [])].sort(
+    (a, b) => (a.weekNumber || 0) - (b.weekNumber || 0)
+  );
+  if (!sorted.length) return { week: 1, phase: "complete" };
+
+  for (let wi = 0; wi < sorted.length; wi += 1) {
+    const wn = resolveWeekNumber(sorted[wi], wi);
+    if (!weekFullyComplete(sorted, progress, wi)) {
+      return { week: wn, phase: "tasks" };
+    }
+    const wk = String(wn);
+    const hasPulse = progress?.weeklyPulse?.[wk];
+    const dismissed = progress?.dismissedPulse?.[wk];
+    if (!hasPulse && !dismissed) {
+      return { week: wn, phase: "pulse" };
+    }
+  }
+
+  const last = sorted[sorted.length - 1];
+  return { week: resolveWeekNumber(last, sorted.length - 1), phase: "complete" };
+}
+
+/**
+ * Rozet tanımları + kazanıldı mı (gamification).
+ * @param {object} plan
+ * @param {object | null} progress
+ * @returns {{ id: string, label: string, icon: string, desc: string, earned: boolean }[]}
+ */
+export function listBadgeStates(plan, progress) {
+  const { total, done } = getTaskCounts(plan, progress);
+  const rate = total > 0 ? done / total : 0;
+  const { xp } = computeXpAndStreak(plan, progress);
+  const pulses = Object.keys(progress?.weeklyPulse || {}).length;
+  const complete = isPathComplete(plan, progress);
+  const cw = countCompletedWeeks(plan, progress);
+
+  return [
+    {
+      id: "first_step",
+      label: "İlk adım",
+      icon: "fa-shoe-prints",
+      desc: "İlk görevini tamamladın.",
+      earned: done >= 1,
+    },
+    {
+      id: "week_closed",
+      label: "Hafta kapatan",
+      icon: "fa-calendar-check",
+      desc: "Bir haftanın tüm görevlerini bitirdin.",
+      earned: cw >= 1,
+    },
+    {
+      id: "momentum",
+      label: "Ritim tutan",
+      icon: "fa-bolt",
+      desc: "İki veya daha fazla haftayı eksiksiz tamamladın.",
+      earned: cw >= 2,
+    },
+    {
+      id: "halfway",
+      label: "Yarı yol",
+      icon: "fa-flag",
+      desc: "Görevlerin en az yarısını bitirdin.",
+      earned: total > 0 && rate >= 0.5,
+    },
+    {
+      id: "pathfinder",
+      label: "Yol açıcı",
+      icon: "fa-compass",
+      desc: "100 XP ve üzeri topladın.",
+      earned: xp >= 100,
+    },
+    {
+      id: "finisher",
+      label: "Yoluncu",
+      icon: "fa-trophy",
+      desc: "Dört haftalık görev listesini tamamladın.",
+      earned: complete,
+    },
+    {
+      id: "nabiz",
+      label: "Nabız veren",
+      icon: "fa-heart-pulse",
+      desc: "Haftalık ankete en az bir kez katıldın.",
+      earned: pulses >= 1,
+    },
+    {
+      id: "open_book",
+      label: "Dört nabız",
+      icon: "fa-book-open",
+      desc: "Dört haftanın da nabzını paylaştın.",
+      earned: pulses >= 4,
+    },
+  ];
+}

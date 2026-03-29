@@ -9,10 +9,12 @@ import {
   dismissWeeklyPulse,
   getCompletionPrimaryAction,
   getFocusWeekNumber,
+  getJourneyAutoStage,
   getTaskCounts,
   initProgressForHobby,
   isPathComplete,
   isWeekUnlocked,
+  listBadgeStates,
   loadLastPlan,
   loadProfileSnapshot,
   loadProgress,
@@ -29,12 +31,16 @@ const WEEKLY_HOURS_MAX = 80;
 const BUDGET_MIN = 0;
 const BUDGET_MAX = 500_000;
 
-const THEME_KEY = "hobbybuddy-theme";
 const PROGRAM_KEY = "hobbybuddy-active-program";
 const ANALYZE_URL = "/api/analyze";
 const VERIFY_URLS_URL = "/api/verify-urls";
 /** Zengin JSON planları için ~55 sn; ağ yavaşsa nadiren yine dolabilir. */
 const REQUEST_TIMEOUT_MS = 55_000;
+
+/** Geçmiş haftaya göz at (null = canlı akış) */
+let journeyBrowseWeek = null;
+/** Rozet kazanma bildirimi için önceki kazanılmış id'ler */
+let prevEarnedBadgeIds = new Set();
 
 const form = document.getElementById("profile-form");
 const interestsEl = document.getElementById("interests");
@@ -43,7 +49,6 @@ const monthlyBudgetEl = document.getElementById("monthly-budget");
 const successEl = document.getElementById("form-success");
 const successMsgEl = document.getElementById("form-success-msg");
 const submitBtn = document.getElementById("submit-btn");
-const themeToggle = document.getElementById("theme-toggle");
 const loadingOverlay = document.getElementById("loading-overlay");
 const lottiePlayer = document.getElementById("loading-lottie");
 const apiErrorEl = document.getElementById("api-error");
@@ -75,6 +80,13 @@ const journeyTaskCount = document.getElementById("journey-task-count");
 const journeyXp = document.getElementById("journey-xp");
 const journeyTier = document.getElementById("journey-tier");
 const journeyStreak = document.getElementById("journey-streak");
+const journeyNavShell = document.getElementById("journey-nav-shell");
+const badgeDrawerBtn = document.getElementById("badge-drawer-btn");
+const badgeDrawer = document.getElementById("badge-drawer");
+const badgeDrawerBackdrop = document.getElementById("badge-drawer-backdrop");
+const badgeDrawerClose = document.getElementById("badge-drawer-close");
+const badgeDrawerList = document.getElementById("badge-drawer-list");
+const badgeToastRoot = document.getElementById("badge-toast-root");
 const journeyInsightCard = document.getElementById("journey-insight-card");
 const journeyInsightTitle = document.getElementById("journey-insight-title");
 const journeyInsightBody = document.getElementById("journey-insight-body");
@@ -331,48 +343,10 @@ function initInterestSuggestions() {
   updateVisibility();
 }
 
-function getStoredTheme() {
-  try {
-    return localStorage.getItem(THEME_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function applyTheme(mode) {
-  const root = document.documentElement;
-  if (mode === "dark") {
-    root.classList.add("dark");
-  } else {
-    root.classList.remove("dark");
-  }
-  themeToggle?.setAttribute("aria-pressed", mode === "dark" ? "true" : "false");
-}
-
-function initTheme() {
-  const stored = getStoredTheme();
-  if (stored === "dark" || stored === "light") {
-    applyTheme(stored);
-    return;
-  }
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  applyTheme(prefersDark ? "dark" : "light");
-}
-
 function initLoadingMotion() {
   if (!lottiePlayer) return;
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     lottiePlayer.classList.add("hidden");
-  }
-}
-
-function toggleTheme() {
-  const next = document.documentElement.classList.contains("dark") ? "light" : "dark";
-  applyTheme(next);
-  try {
-    localStorage.setItem(THEME_KEY, next);
-  } catch {
-    /* ignore */
   }
 }
 
@@ -503,11 +477,59 @@ function applyProfileSnapshot() {
 }
 
 /**
- * @param {HTMLElement} card
- * @param {number} weekNumber
- * @param {string} hobby
- * @param {boolean} trackingOn
+ * @param {"enjoyment" | "effort"} kind
+ * @param {number} initial 1–5
+ * @param {(v: number) => void} onPick
  */
+function createPulseRatingRow(kind, initial, onPick) {
+  const row = document.createElement("div");
+  row.className = "flex flex-wrap gap-2";
+  const enjoy = [
+    { v: 1, emoji: "😕", cap: "Az" },
+    { v: 2, emoji: "😐", cap: "Idare" },
+    { v: 3, emoji: "🙂", cap: "Tamam" },
+    { v: 4, emoji: "😄", cap: "İyi" },
+    { v: 5, emoji: "🤩", cap: "Harika" },
+  ];
+  const effort = [
+    { v: 1, emoji: "🪶", cap: "Çok kolay" },
+    { v: 2, emoji: "🌿", cap: "Kolay" },
+    { v: 3, emoji: "⚖️", cap: "Orta" },
+    { v: 4, emoji: "🔥", cap: "Zor" },
+    { v: 5, emoji: "⛰️", cap: "Çok zor" },
+  ];
+  const opts = kind === "enjoyment" ? enjoy : effort;
+  let current = Math.min(5, Math.max(1, Math.round(initial)));
+  const buttons = [];
+
+  const setSelected = (v) => {
+    current = v;
+    onPick(v);
+    buttons.forEach((b) => {
+      const on = Number(b.dataset.value) === v;
+      b.classList.toggle("hb-pulse-rating-btn--on", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  };
+
+  opts.forEach((o) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.dataset.value = String(o.v);
+    b.className =
+      "hb-pulse-rating-btn hb-btn-press flex min-w-[4.5rem] flex-1 flex-col items-center gap-0.5 rounded-xl border border-violet-500/25 bg-midnight-950/60 px-2 py-2 text-center text-[10px] font-semibold text-slate-300 transition hover:border-fuchsia-400/40 hover:bg-midnight-900 sm:min-w-[5rem]";
+    b.innerHTML = `<span class="text-lg leading-none" aria-hidden="true">${o.emoji}</span><span>${o.cap}</span>`;
+    b.addEventListener("click", () => setSelected(o.v));
+    b.setAttribute("aria-pressed", o.v === current ? "true" : "false");
+    if (o.v === current) b.classList.add("hb-pulse-rating-btn--on");
+    buttons.push(b);
+    row.appendChild(b);
+  });
+
+  setSelected(current);
+  return { row, getValue: () => current };
+}
+
 function appendOptionalWeekPulse(card, weekNumber, hobby, trackingOn) {
   if (!trackingOn) return;
   const progress = loadProgress();
@@ -515,84 +537,67 @@ function appendOptionalWeekPulse(card, weekNumber, hobby, trackingOn) {
   const wk = String(weekNumber);
   const existing = progress.weeklyPulse[wk];
 
-  const wrap = document.createElement("details");
-  wrap.className =
-    "mt-4 rounded-xl border border-violet-200/60 bg-violet-50/30 p-3 dark:border-midnight-600 dark:bg-midnight-900/40";
+  const shell = document.createElement("div");
+  shell.className =
+    "hb-pulse-shell mt-5 overflow-hidden rounded-2xl border-2 border-fuchsia-500/25 bg-gradient-to-br from-fuchsia-600/15 via-midnight-950/80 to-amber-500/10 p-[1px] shadow-joy-sm";
 
-  const sum = document.createElement("summary");
-  sum.className =
-    "cursor-pointer select-none text-xs font-bold uppercase tracking-wide text-ink-700 dark:text-slate-300";
-  sum.textContent = "İsteğe bağlı mini anket (zorunlu değil)";
-  wrap.appendChild(sum);
+  const inner = document.createElement("div");
+  inner.className = "rounded-[0.9rem] bg-midnight-900/95 p-4 sm:p-5";
+
+  const head = document.createElement("div");
+  head.className = "mb-4 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between";
+  const headLeft = document.createElement("div");
+  headLeft.innerHTML = `<p class="text-xs font-bold uppercase tracking-wide text-fuchsia-300/90"><i class="fa-solid fa-wand-magic-sparkles mr-1.5 text-amber-300" aria-hidden="true"></i>Haftanın nabzı</p>
+    <p class="mt-1 font-display text-base font-bold text-slate-50">Bu hafta senin için nasıl geçti?</p>
+    <p class="mt-0.5 text-xs text-slate-400">İsteğe bağlı — yaklaşık 30 saniye. Cevapların sadece sende kalır.</p>`;
+  head.appendChild(headLeft);
+  shell.appendChild(inner);
+  inner.appendChild(head);
 
   const body = document.createElement("div");
-  body.className = "mt-3 space-y-3";
+  body.className = "space-y-4";
+
+  if (existing) {
+    const note = document.createElement("p");
+    note.className = "rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100/90";
+    note.textContent = `Kayıtlı: keyif ${existing.enjoyment}/5 · zorluk ${existing.effort}/5 — aşağıdan güncelleyebilirsin.`;
+    body.appendChild(note);
+  } else if (progress.dismissedPulse[wk]) {
+    const note = document.createElement("p");
+    note.className = "text-xs text-slate-400";
+    note.textContent = "Bu hafta anketi atlamıştın; istersen şimdi doldurabilirsin.";
+    body.appendChild(note);
+  }
+
+  const enjoyLbl = document.createElement("p");
+  enjoyLbl.className = "text-[11px] font-bold uppercase tracking-wide text-amber-200/80";
+  enjoyLbl.textContent = "Keyif seviyesi";
+  body.appendChild(enjoyLbl);
+  const enjoyPick = createPulseRatingRow("enjoyment", existing?.enjoyment ?? 3, () => {});
+  body.appendChild(enjoyPick.row);
+
+  const effLbl = document.createElement("p");
+  effLbl.className = "text-[11px] font-bold uppercase tracking-wide text-amber-200/80";
+  effLbl.textContent = "Ne kadar zorladı?";
+  body.appendChild(effLbl);
+  const effPick = createPulseRatingRow("effort", existing?.effort ?? 3, () => {});
+  body.appendChild(effPick.row);
 
   const ta = document.createElement("textarea");
   ta.id = `week-pulse-comment-${weekNumber}`;
   ta.rows = 3;
-  ta.setAttribute(
-    "aria-label",
-    "Bu hafta hakkında isteğe bağlı serbest yorum (en fazla birkaç cümle)"
-  );
+  ta.setAttribute("aria-label", "Bu hafta için isteğe bağlı kısa not");
   ta.placeholder =
-    "İstersen bu haftayı kendi cümlelerinle özetle (zorunlu değil). Örn: en çok ne zorladı, neyi sevdin…";
+    "İstersen bir cümle: en çok ne yakaladı, ne sürpriz oldu? (Boş bırakılabilir.)";
   ta.maxLength = 620;
   ta.className =
-    "mt-1 w-full rounded-lg border border-violet-200/80 bg-white px-3 py-2 text-sm text-ink-900 placeholder:text-ink-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-midnight-600 dark:bg-midnight-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-accent-light";
+    "mt-1 w-full rounded-xl border border-violet-500/30 bg-midnight-950/80 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-fuchsia-400/50 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/20";
   ta.value = String(existing?.comment ?? "");
 
   const taLbl = document.createElement("label");
-  taLbl.className = "block text-xs font-medium text-ink-700 dark:text-slate-300";
+  taLbl.className = "block text-xs font-medium text-slate-400";
   taLbl.setAttribute("for", ta.id);
-  taLbl.textContent = "Serbest yorum (isteğe bağlı)";
-
-  if (existing) {
-    const note = document.createElement("p");
-    note.className = "text-xs text-ink-600 dark:text-slate-400";
-    note.textContent = `Kayıtlı yanıt: keyif ${existing.enjoyment}/5, çaba veya zorluk ${existing.effort}/5. Aşağıdan güncelleyebilirsin.`;
-    body.appendChild(note);
-  } else if (progress.dismissedPulse[wk]) {
-    const note = document.createElement("p");
-    note.className = "text-xs text-ink-600 dark:text-slate-400";
-    note.textContent = "Bu hafta için anketi atlamayı seçtin; istersen yine doldurabilirsin.";
-    body.appendChild(note);
-  }
-
-  /**
-   * @param {string} labelText
-   * @param {number} initial
-   * @param {"enjoyment" | "effort"} kind
-   */
-  function addLabeledSelect(labelText, initial, kind) {
-    const row = document.createElement("div");
-    row.className = "flex flex-wrap items-center gap-2";
-    const lbl = document.createElement("span");
-    lbl.className = "text-xs font-medium text-ink-700 dark:text-slate-300";
-    lbl.textContent = labelText;
-    row.appendChild(lbl);
-    const sel = document.createElement("select");
-    sel.className =
-      "max-w-full rounded-lg border border-violet-200/80 bg-white px-2 py-1 text-sm dark:border-midnight-600 dark:bg-midnight-900 dark:text-slate-100";
-    const scale =
-      kind === "effort"
-        ? ["", "çok kolay", "kolay", "orta", "zor", "çok zor"]
-        : ["", "çok düşük", "düşük", "orta", "iyi", "çok iyi"];
-    for (let i = 1; i <= 5; i += 1) {
-      const opt = document.createElement("option");
-      opt.value = String(i);
-      opt.textContent = `${i} — ${scale[i]}`;
-      sel.appendChild(opt);
-    }
-    sel.value = String(initial);
-    row.appendChild(sel);
-    body.appendChild(row);
-    return sel;
-  }
-
-  const selEnjoy = addLabeledSelect("Keyif:", existing?.enjoyment ?? 3, "enjoyment");
-  const selEffort = addLabeledSelect("Çaba / zorluk:", existing?.effort ?? 3, "effort");
-
+  taLbl.textContent = "Kısa not (isteğe bağlı)";
   body.appendChild(taLbl);
   body.appendChild(ta);
 
@@ -601,16 +606,16 @@ function appendOptionalWeekPulse(card, weekNumber, hobby, trackingOn) {
   const saveBtn = document.createElement("button");
   saveBtn.type = "button";
   saveBtn.className =
-    "hb-btn-press rounded-lg bg-accent px-3 py-1.5 text-xs font-bold text-white shadow-brand-sm dark:shadow-none";
-  saveBtn.textContent = "Kaydet";
+    "hb-btn-press flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2.5 text-sm font-bold text-white shadow-joy-sm sm:flex-none";
+  saveBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2" aria-hidden="true"></i>Kaydet';
   saveBtn.addEventListener("click", () => {
-    saveWeeklyPulse(hobby, weekNumber, Number(selEnjoy.value), Number(selEffort.value), ta.value);
+    saveWeeklyPulse(hobby, weekNumber, enjoyPick.getValue(), effPick.getValue(), ta.value);
     if (currentPlan) renderPlan(currentPlan);
   });
   const skipBtn = document.createElement("button");
   skipBtn.type = "button";
   skipBtn.className =
-    "hb-btn-press rounded-lg border border-violet-200/80 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 dark:border-midnight-600 dark:bg-midnight-800 dark:text-slate-200";
+    "hb-btn-press rounded-xl border border-slate-500/40 bg-midnight-950/60 px-4 py-2.5 text-sm font-semibold text-slate-300 hover:border-slate-400/60";
   skipBtn.textContent = "Şimdi değil";
   skipBtn.addEventListener("click", () => {
     dismissWeeklyPulse(hobby, weekNumber);
@@ -620,8 +625,347 @@ function appendOptionalWeekPulse(card, weekNumber, hobby, trackingOn) {
   btnRow.appendChild(skipBtn);
   body.appendChild(btnRow);
 
-  wrap.appendChild(body);
-  card.appendChild(wrap);
+  inner.appendChild(body);
+  card.appendChild(shell);
+}
+
+function getMaxBrowseWeekNumber(plan, progress, auto) {
+  if (auto.phase === "complete") return 4;
+  return Math.max(0, auto.week - 1);
+}
+
+function setBadgeDrawerOpen(open) {
+  if (!badgeDrawer) return;
+  badgeDrawer.classList.toggle("hidden", !open);
+  badgeDrawerBtn?.setAttribute("aria-expanded", open ? "true" : "false");
+  document.body.classList.toggle("overflow-hidden", Boolean(open));
+  if (open) renderBadgeDrawerList();
+}
+
+function renderBadgeDrawerList() {
+  if (!badgeDrawerList || !currentPlan) return;
+  const progress = loadProgress();
+  badgeDrawerList.replaceChildren();
+  const states = listBadgeStates(currentPlan, progress);
+  states.forEach((b) => {
+    const row = document.createElement("div");
+    row.className = [
+      "mb-3 flex gap-3 rounded-xl border p-3",
+      b.earned
+        ? "border-fuchsia-400/35 bg-gradient-to-r from-accent/15 to-amber-500/10"
+        : "border-midnight-600 bg-midnight-950/50 opacity-75",
+    ].join(" ");
+    const ic = document.createElement("div");
+    ic.className = `flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${b.earned ? "bg-fuchsia-500/20 text-amber-300" : "bg-midnight-800 text-slate-500"}`;
+    ic.innerHTML = `<i class="fa-solid ${b.icon}" aria-hidden="true"></i>`;
+    const tx = document.createElement("div");
+    tx.className = "min-w-0 flex-1";
+    tx.innerHTML = `<p class="font-semibold text-slate-100">${b.label}${b.earned ? "" : ' <i class="fa-solid fa-lock text-xs text-slate-500" aria-hidden="true"></i>'}</p><p class="text-xs text-slate-400">${b.desc}</p>`;
+    row.appendChild(ic);
+    row.appendChild(tx);
+    badgeDrawerList.appendChild(row);
+  });
+}
+
+function syncBadgeToasts(states) {
+  const earned = states.filter((s) => s.earned).map((s) => s.id);
+  const next = new Set(earned);
+  if (prevEarnedBadgeIds.size === 0) {
+    prevEarnedBadgeIds = next;
+    return;
+  }
+  earned.forEach((id) => {
+    if (prevEarnedBadgeIds.has(id)) return;
+    const b = states.find((x) => x.id === id);
+    if (!b || !badgeToastRoot) return;
+    const el = document.createElement("div");
+    el.className =
+      "hb-badge-toast pointer-events-auto flex items-center gap-3 rounded-xl border border-fuchsia-400/40 bg-gradient-to-r from-accent/40 via-fuchsia-600/25 to-amber-500/20 px-4 py-3 text-sm font-semibold text-white shadow-joy";
+    el.setAttribute("role", "status");
+    el.innerHTML = `<i class="fa-solid ${b.icon} text-2xl text-amber-300" aria-hidden="true"></i><span>Rozet: <strong>${b.label}</strong></span>`;
+    badgeToastRoot.appendChild(el);
+    window.setTimeout(() => {
+      el.classList.add("hb-badge-toast--out");
+      window.setTimeout(() => el.remove(), 400);
+    }, 3200);
+  });
+  prevEarnedBadgeIds = next;
+}
+
+function appendWeekPulseReadonly(card, weekNumber, progress) {
+  const wk = String(weekNumber);
+  const p = progress?.weeklyPulse?.[wk];
+  const skipped = progress?.dismissedPulse?.[wk];
+  const box = document.createElement("div");
+  box.className =
+    "mt-4 rounded-xl border border-slate-500/30 bg-midnight-950/50 px-3 py-2 text-xs text-slate-400";
+  if (p) {
+    box.textContent = `Nabız kaydı: keyif ${p.enjoyment}/5 · zorluk ${p.effort}/5${p.comment ? ` — "${String(p.comment).slice(0, 120)}${String(p.comment).length > 120 ? "…" : ""}"` : ""}`;
+  } else if (skipped) {
+    box.textContent = "Bu hafta anket atlanmış.";
+  } else {
+    box.textContent = "Henüz nabız kaydı yok.";
+  }
+  card.appendChild(box);
+}
+
+function renderJourneyNav(plan, sorted, progress, hobby, auto) {
+  if (!journeyNavShell) return;
+  const maxBrowse = getMaxBrowseWeekNumber(plan, progress, auto);
+  const browsing = journeyBrowseWeek != null;
+  const displayWn = browsing ? journeyBrowseWeek : auto.week;
+  const journeyComplete = auto.phase === "complete";
+
+  journeyNavShell.classList.remove("hidden");
+  journeyNavShell.replaceChildren();
+
+  const row = document.createElement("div");
+  row.className = "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between";
+
+  const label = document.createElement("p");
+  label.className = "text-center text-sm font-semibold text-slate-200 sm:text-left";
+  if (browsing) {
+    label.textContent = `Geçmiş hafta: ${displayWn}. hafta (salt okunur)`;
+  } else if (journeyComplete) {
+    label.textContent = "Yolculuk tamamlandı — geçmiş haftalara göz atabilirsin.";
+  } else if (auto.phase === "tasks") {
+    label.textContent = `Hafta ${auto.week} / 4 — önce görevleri bitir`;
+  } else {
+    label.textContent = `Hafta ${auto.week} / 4 — görevler tamam, nabız anketi`;
+  }
+
+  const btnRow = document.createElement("div");
+  btnRow.className = "flex flex-wrap items-center justify-center gap-2 sm:justify-end";
+
+  const backBtn = document.createElement("button");
+  backBtn.type = "button";
+  backBtn.className =
+    "hb-btn-press inline-flex items-center gap-2 rounded-lg border border-violet-500/40 bg-midnight-900 px-3 py-2 text-xs font-semibold text-slate-200 hover:border-fuchsia-400/50";
+  backBtn.innerHTML = '<i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Geri';
+  const canBack = browsing || (!browsing && maxBrowse >= 1);
+  backBtn.disabled = !canBack;
+  backBtn.classList.toggle("opacity-40", !canBack);
+  backBtn.addEventListener("click", () => {
+    if (browsing && journeyBrowseWeek > 1) {
+      journeyBrowseWeek -= 1;
+    } else if (browsing && journeyBrowseWeek === 1) {
+      journeyBrowseWeek = null;
+    } else if (!browsing && maxBrowse >= 1) {
+      journeyBrowseWeek = maxBrowse;
+    }
+    if (currentPlan) renderPlan(currentPlan);
+  });
+
+  const fwdBtn = document.createElement("button");
+  fwdBtn.type = "button";
+  fwdBtn.className =
+    "hb-btn-press inline-flex items-center gap-2 rounded-lg border border-violet-500/40 bg-midnight-900 px-3 py-2 text-xs font-semibold text-slate-200 hover:border-fuchsia-400/50";
+  fwdBtn.innerHTML = 'İleri <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>';
+  const canFwd = browsing && journeyBrowseWeek != null && journeyBrowseWeek < maxBrowse;
+  fwdBtn.disabled = !canFwd;
+  fwdBtn.classList.toggle("opacity-40", !canFwd);
+  fwdBtn.addEventListener("click", () => {
+    if (browsing && journeyBrowseWeek != null && journeyBrowseWeek < maxBrowse) {
+      journeyBrowseWeek += 1;
+      if (currentPlan) renderPlan(currentPlan);
+    }
+  });
+
+  const liveBtn = document.createElement("button");
+  liveBtn.type = "button";
+  liveBtn.className =
+    "hb-btn-press inline-flex items-center gap-2 rounded-lg border border-amber-400/40 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-200 hover:bg-amber-500/20";
+  liveBtn.textContent = "Şu anki haftaya dön";
+  liveBtn.hidden = !browsing;
+  liveBtn.addEventListener("click", () => {
+    journeyBrowseWeek = null;
+    if (currentPlan) renderPlan(currentPlan);
+  });
+
+  btnRow.appendChild(backBtn);
+  btnRow.appendChild(fwdBtn);
+  btnRow.appendChild(liveBtn);
+
+  row.appendChild(label);
+  row.appendChild(btnRow);
+  journeyNavShell.appendChild(row);
+}
+
+function appendResourcesCollapsible(card, resWeek, wn) {
+  if (!Array.isArray(resWeek) || !resWeek.length) return;
+  const det = document.createElement("details");
+  det.className = "group mt-4 rounded-xl border border-violet-500/20 bg-midnight-950/40";
+  const sum = document.createElement("summary");
+  sum.className =
+    "cursor-pointer list-none px-3 py-2.5 text-xs font-bold uppercase tracking-wide text-fuchsia-300/90 marker:content-none";
+  sum.innerHTML =
+    '<span class="mr-2 inline-block transition group-open:rotate-90"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></span>Bu haftanın kaynakları (isteğe bağlı)';
+  det.appendChild(sum);
+  const inner = document.createElement("div");
+  inner.className = "space-y-3 border-t border-violet-500/15 px-3 pb-3 pt-1";
+  resWeek.forEach((r) => {
+    const row = document.createElement("div");
+    row.className = "text-sm";
+    const top = document.createElement("div");
+    top.className = "flex flex-wrap items-baseline gap-2";
+    const kind = document.createElement("span");
+    kind.className =
+      "inline-block rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-light";
+    kind.textContent = String(r.kind || "link");
+    top.appendChild(kind);
+    top.appendChild(
+      externalLinkOrSpan(
+        r.url,
+        String(r.title || "Bağlantı"),
+        [r.title, r.kind, r.note].filter(Boolean).join(" ").trim() || String(r.title || "")
+      )
+    );
+    row.appendChild(top);
+    if (r.note) {
+      const note = document.createElement("p");
+      note.className = "mt-1 text-xs text-slate-500";
+      note.textContent = String(r.note);
+      row.appendChild(note);
+    }
+    inner.appendChild(row);
+  });
+  det.appendChild(inner);
+  card.appendChild(det);
+}
+
+function renderJourneyWeekWizard(plan, sorted, progress, hobby, container) {
+  const auto = getJourneyAutoStage(plan, progress);
+  const maxBrowse = getMaxBrowseWeekNumber(plan, progress, auto);
+  if (journeyBrowseWeek != null) {
+    if (journeyBrowseWeek < 1 || journeyBrowseWeek > maxBrowse) {
+      journeyBrowseWeek = null;
+    }
+  }
+
+  const browsing = journeyBrowseWeek != null;
+  const journeyComplete = auto.phase === "complete";
+
+  renderJourneyNav(plan, sorted, progress, hobby, auto);
+
+  if (journeyComplete && !browsing) {
+    const msg = document.createElement("div");
+    msg.className =
+      "rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-8 text-center shadow-inner";
+    msg.innerHTML =
+      '<p class="font-display text-xl font-bold text-emerald-100">Dört haftayı tamamladın</p><p class="mt-2 text-sm text-emerald-200/85">Özet ve sonraki adımlar aşağıdaki kutuda. Geçmiş haftalara <strong>Geri</strong> ile bakabilirsin.</p>';
+    container.appendChild(msg);
+    return;
+  }
+
+  const displayWn = browsing ? journeyBrowseWeek : auto.week;
+  const wi = sorted.findIndex((w, i) => resolveWeekNumber(w, i) === displayWn);
+  if (wi < 0) return;
+  const w = sorted[wi];
+  const wn = resolveWeekNumber(w, wi);
+  const seqLocked = !isWeekUnlocked(sorted, progress, wi);
+  if (seqLocked) {
+    const p = document.createElement("p");
+    p.className = "text-sm text-slate-400";
+    p.textContent = "Bu hafta henüz kilitli.";
+    container.appendChild(p);
+    return;
+  }
+
+  const phase = browsing ? "browse" : auto.phase;
+  const showPulseOnly = phase === "pulse" && !browsing;
+  const showTasks = phase === "tasks" || phase === "browse";
+
+  const card = document.createElement("div");
+  card.className =
+    "max-h-[min(78vh,720px)] overflow-y-auto rounded-2xl border-2 border-amber-400/25 bg-gradient-to-b from-midnight-900/90 to-midnight-950 p-4 shadow-joy-sm sm:p-6";
+
+  if (!browsing && auto.phase === "tasks" && wn === auto.week) {
+    const ribbon = document.createElement("div");
+    ribbon.className =
+      "mb-3 flex items-center gap-2 rounded-xl border border-amber-400/35 bg-gradient-to-r from-amber-500/20 via-fuchsia-500/10 to-violet-600/15 px-3 py-2 text-sm font-bold text-amber-100";
+    ribbon.innerHTML =
+      '<i class="fa-solid fa-bullseye text-amber-300" aria-hidden="true"></i><span>Bu haftanın odak noktası — önce bu görevleri bitir</span>';
+    card.appendChild(ribbon);
+  }
+
+  if (!browsing && auto.phase === "pulse" && wn === auto.week) {
+    const ribbon2 = document.createElement("div");
+    ribbon2.className =
+      "mb-3 flex items-center gap-2 rounded-xl border border-fuchsia-400/35 bg-fuchsia-500/10 px-3 py-2 text-sm font-bold text-fuchsia-100";
+    ribbon2.innerHTML =
+      '<i class="fa-solid fa-wand-magic-sparkles text-amber-300" aria-hidden="true"></i><span>Görevler tamam — şimdi haftanın nabzını kaydet</span>';
+    card.appendChild(ribbon2);
+  }
+
+  if (browsing) {
+    const b = document.createElement("div");
+    b.className =
+      "mb-3 rounded-lg border border-slate-500/30 bg-midnight-950/60 px-2 py-1.5 text-center text-[11px] text-slate-400";
+    b.textContent = "Salt okunur özet";
+    card.appendChild(b);
+  }
+
+  const title = document.createElement("p");
+  title.className = "font-display text-xl font-bold text-white";
+  title.textContent = `${wn}. hafta`;
+  card.appendChild(title);
+
+  if (w.learningObjective) {
+    const obj = document.createElement("p");
+    obj.className =
+      "mt-2 rounded-xl border border-violet-500/20 bg-midnight-950/50 p-3 text-sm font-medium leading-relaxed text-slate-200";
+    obj.textContent = String(w.learningObjective);
+    card.appendChild(obj);
+  }
+
+  const tasks = Array.isArray(w.tasks) ? w.tasks : [];
+  if (showTasks) {
+    const ul = document.createElement("ul");
+    ul.className = "mt-4 space-y-2";
+    const readOnly = browsing;
+    tasks.forEach((t, idx) => {
+      const li = document.createElement("li");
+      li.className =
+        "rounded-xl border border-violet-500/15 bg-midnight-950/50 px-3 py-2.5 text-sm leading-snug text-slate-200";
+      if (readOnly) {
+        const done = Boolean(progress.tasks[`${wn}:${idx}`]);
+        li.innerHTML = `<span class="mr-2 inline-flex h-5 w-5 items-center justify-center rounded border ${done ? "border-emerald-500/50 bg-emerald-500/20 text-emerald-300" : "border-slate-600 text-slate-500"}"><i class="fa-solid fa-check text-[10px]" aria-hidden="true"></i></span>${String(t)}`;
+        li.classList.add(done ? "opacity-80" : "");
+      } else {
+        const label = document.createElement("label");
+        label.className = "flex cursor-pointer items-start gap-3";
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.className =
+          "hb-task-check mt-0.5 h-5 w-5 shrink-0 rounded border-violet-400 text-accent focus:ring-accent";
+        cb.checked = Boolean(progress.tasks[`${wn}:${idx}`]);
+        const span = document.createElement("span");
+        span.textContent = String(t);
+        span.className = cb.checked ? "text-slate-500 line-through" : "text-slate-100";
+        cb.addEventListener("change", () => {
+          if (!currentPlan) return;
+          setTaskDone(currentPlan, hobby, wn, idx, cb.checked);
+          span.className = cb.checked ? "text-slate-500 line-through" : "text-slate-100";
+          updateProgramChrome();
+          if (currentPlan) renderPlan(currentPlan);
+        });
+        label.appendChild(cb);
+        label.appendChild(span);
+        li.appendChild(label);
+      }
+      ul.appendChild(li);
+    });
+    card.appendChild(ul);
+    appendResourcesCollapsible(card, w.resourcesThisWeek, wn);
+  }
+
+  if (showPulseOnly) {
+    appendOptionalWeekPulse(card, wn, hobby, true);
+  } else if (phase === "browse") {
+    appendWeekPulseReadonly(card, wn, progress);
+  }
+
+  container.appendChild(card);
 }
 
 function updateProgramChrome() {
@@ -632,7 +976,10 @@ function updateProgramChrome() {
   const progress = loadProgress();
 
   journeyTracker?.classList.toggle("hidden", !started);
-  journeyInsightCard?.classList.toggle("hidden", !started);
+  const auto = started && getJourneyAutoStage(currentPlan, progress);
+  const journeyComplete = Boolean(auto && auto.phase === "complete");
+  journeyInsightCard?.classList.toggle("hidden", !started || !journeyComplete);
+  resultAnalysisEl?.classList.toggle("hidden", started && !journeyComplete);
 
   if (!started) {
     prevJourneyPathComplete = false;
@@ -641,6 +988,8 @@ function updateProgramChrome() {
 
   const counts = getTaskCounts(currentPlan, progress);
   const { xp, activeWeeks } = computeXpAndStreak(currentPlan, progress);
+  const badgeStates = listBadgeStates(currentPlan, progress);
+  syncBadgeToasts(badgeStates);
   const pct = counts.total ? Math.round((counts.done / counts.total) * 100) : 0;
   if (journeyProgressFill) journeyProgressFill.style.width = `${pct}%`;
   if (journeyTaskCount) {
@@ -650,18 +999,24 @@ function updateProgramChrome() {
   if (journeyTier) journeyTier.textContent = xpTierLabelTr(xp);
   if (journeyStreak) journeyStreak.textContent = `${activeWeeks} / 4`;
 
-  const complete = isPathComplete(currentPlan, progress);
-  const focusWeek = getFocusWeekNumber(currentPlan, progress);
-  if (journeyWeekLabel) {
-    if (counts.total && counts.done >= counts.total) {
-      journeyWeekLabel.textContent = "Tebrikler — dört haftalık görev listesini tamamladın";
+  if (journeyWeekLabel && auto) {
+    if (journeyComplete) {
+      journeyWeekLabel.textContent = "Yolculuk tamam — özet aşağıda";
+    } else if (auto.phase === "pulse") {
+      journeyWeekLabel.textContent = `Hafta ${auto.week} / 4 — nabız anketi`;
     } else {
-      journeyWeekLabel.textContent = `Sıradaki odak: ${focusWeek}. hafta`;
+      journeyWeekLabel.textContent = `Hafta ${auto.week} / 4 — görevler`;
     }
   }
 
   const insight = computeInsight(currentPlan, progress);
-  const copy = complete ? buildCompletionInsightCopy(insight, hobby) : buildInsightCopy(insight, hobby);
+  if (!journeyComplete) {
+    if (journeyInsightTitle) journeyInsightTitle.textContent = "";
+    if (journeyInsightBody) journeyInsightBody.textContent = "";
+    if (journeyInsightBullets) journeyInsightBullets.replaceChildren();
+    if (journeyInsightActions) journeyInsightActions.replaceChildren();
+  } else {
+  const copy = buildCompletionInsightCopy(insight, hobby);
   if (journeyInsightTitle) journeyInsightTitle.textContent = copy.title;
   if (journeyInsightBody) journeyInsightBody.textContent = copy.body;
   if (journeyInsightBullets) {
@@ -674,7 +1029,6 @@ function updateProgramChrome() {
   }
   if (journeyInsightActions) {
     journeyInsightActions.replaceChildren();
-    if (complete) {
       const rec = getCompletionPrimaryAction(insight);
       const callout = document.createElement("div");
       callout.className =
@@ -726,40 +1080,16 @@ function updateProgramChrome() {
         "Her iki seçenek de yeni dört haftalık plan üretir ve yerel program verisini sıfırlar. Süre ve bütçe formdaki değerlerle kalır.";
       journeyInsightActions.appendChild(sub);
 
-      if (complete && !prevJourneyPathComplete) {
+      if (!prevJourneyPathComplete) {
         prevJourneyPathComplete = true;
         requestAnimationFrame(() => {
           journeyInsightCard?.scrollIntoView({ behavior: "smooth", block: "nearest" });
         });
       }
-    } else if (insight.path === "explore") {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className =
-        "hb-btn-press rounded-xl border-2 border-accent/50 bg-accent/10 px-4 py-2 text-sm font-semibold text-accent-dark dark:border-accent-light/50 dark:bg-accent/15 dark:text-accent-light";
-      btn.textContent = "Yeni hobi önerisi için geri bildirimi forma ekle";
-      btn.addEventListener("click", () => {
-        pendingProgramFeedback = buildProgramFeedbackForApi(currentPlan, loadProgress());
-        const marker = "\n\n--- Program geri bildirimi (otomatik) ---\n";
-        const block = `${marker}${pendingProgramFeedback}`;
-        const cur = interestsEl.value.trim();
-        const next = cur.includes(marker) ? cur : `${cur}${block}`.slice(0, 2000);
-        interestsEl.value = next;
-        showOnboarding();
-        onboardingSection?.scrollIntoView({ behavior: "smooth", block: "start" });
-        interestsEl?.focus();
-      });
-      journeyInsightActions.appendChild(btn);
-    } else if (insight.path === "specialize") {
-      const hint = document.createElement("p");
-      hint.className = "text-xs text-ink-600 dark:text-slate-400";
-      hint.textContent =
-        "Tüm görevleri bitirince burada ileri seviye veya farklı yön için tek tıkla yeni plan seçenekleri çıkar.";
-      journeyInsightActions.appendChild(hint);
-    }
+  }
   }
 
-  if (!complete) prevJourneyPathComplete = false;
+  if (!journeyComplete) prevJourneyPathComplete = false;
 }
 
 function formatTry(n) {
@@ -779,7 +1109,14 @@ function sanitizeHttpsUrl(raw) {
   return null;
 }
 
-function externalLinkOrSpan(url, text) {
+function googleSearchUrlFromQuery(query) {
+  const q = String(query ?? "")
+    .trim()
+    .slice(0, 300);
+  return `https://www.google.com/search?q=${encodeURIComponent(q || "hobi")}`;
+}
+
+function externalLinkOrSpan(url, text, fallbackQuery) {
   const safe = sanitizeHttpsUrl(url);
   const linkClasses =
     "hb-external-link font-medium text-accent-dark underline decoration-accent/40 underline-offset-2 hover:decoration-accent dark:text-accent-light";
@@ -790,6 +1127,9 @@ function externalLinkOrSpan(url, text) {
     a.rel = "noopener noreferrer";
     a.className = linkClasses;
     a.dataset.externalUrl = safe;
+    if (fallbackQuery != null && String(fallbackQuery).trim()) {
+      a.dataset.fallbackQuery = String(fallbackQuery).trim().slice(0, 400);
+    }
     a.textContent = text;
     return a;
   }
@@ -825,10 +1165,26 @@ async function verifyExternalLinksIn(root) {
     nodes.forEach((a) => {
       const u = a.dataset.externalUrl;
       if (!u || !dead.has(u)) return;
-      const span = document.createElement("span");
-      span.className = "font-medium text-ink-800 dark:text-slate-200";
-      span.textContent = a.textContent;
-      a.replaceWith(span);
+      const wrap = document.createElement("span");
+      wrap.className = "inline-flex max-w-full flex-col gap-1 sm:inline-flex sm:max-w-none sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-2";
+      const label = document.createElement("span");
+      label.className = "font-medium text-ink-800 dark:text-slate-200";
+      label.textContent = a.textContent;
+      wrap.appendChild(label);
+      const hint = document.createElement("span");
+      hint.className = "text-xs font-medium text-ink-500 dark:text-slate-500";
+      hint.textContent = "Bağlantı doğrulanamadı.";
+      wrap.appendChild(hint);
+      const q = a.dataset.fallbackQuery || a.textContent || "";
+      const searchA = document.createElement("a");
+      searchA.href = googleSearchUrlFromQuery(q);
+      searchA.target = "_blank";
+      searchA.rel = "noopener noreferrer";
+      searchA.className =
+        "hb-external-link shrink-0 text-sm font-semibold text-accent-dark underline decoration-accent/50 underline-offset-2 hover:decoration-accent dark:text-accent-light";
+      searchA.textContent = "Google'da ara";
+      wrap.appendChild(searchA);
+      a.replaceWith(wrap);
     });
   } catch {
     /* ağ / CORS: linkleri olduğu gibi bırak */
@@ -873,7 +1229,13 @@ function renderLearningResources(lr) {
       li.className =
         "rounded-xl border border-violet-200/60 bg-violet-50/30 p-3 dark:border-midnight-600 dark:bg-midnight-900/40";
       const titleRow = document.createElement("div");
-      titleRow.appendChild(externalLinkOrSpan(b.url, String(b.title || "—")));
+      titleRow.appendChild(
+        externalLinkOrSpan(
+          b.url,
+          String(b.title || "—"),
+          [b.title, b.author].filter(Boolean).join(" ").trim() || String(b.title || "")
+        )
+      );
       li.appendChild(titleRow);
       if (b.author) {
         const au = document.createElement("p");
@@ -908,7 +1270,13 @@ function renderLearningResources(lr) {
       li.className =
         "rounded-xl border border-violet-200/60 bg-violet-50/30 p-3 dark:border-midnight-600 dark:bg-midnight-900/40";
       const titleRow = document.createElement("div");
-      titleRow.appendChild(externalLinkOrSpan(v.url, String(v.title || "—")));
+      titleRow.appendChild(
+        externalLinkOrSpan(
+          v.url,
+          String(v.title || "—"),
+          [v.title, v.channelName].filter(Boolean).join(" ").trim() || String(v.title || "")
+        )
+      );
       li.appendChild(titleRow);
       if (v.channelName) {
         const ch = document.createElement("p");
@@ -943,7 +1311,13 @@ function renderLearningResources(lr) {
       li.className =
         "rounded-xl border border-violet-200/60 bg-violet-50/30 p-3 dark:border-midnight-600 dark:bg-midnight-900/40";
       const titleRow = document.createElement("div");
-      titleRow.appendChild(externalLinkOrSpan(c.url, String(c.name || "—")));
+      titleRow.appendChild(
+        externalLinkOrSpan(
+          c.url,
+          String(c.name || "—"),
+          [c.name, c.platform, "topluluk"].filter(Boolean).join(" ").trim() || String(c.name || "")
+        )
+      );
       li.appendChild(titleRow);
       if (c.platform) {
         const pl = document.createElement("p");
@@ -1052,131 +1426,41 @@ function renderPlan(plan) {
     const st = readProgramCommitment();
     const trackingOn = Boolean(hobby && st && st.hobby === hobby);
     const progress = trackingOn ? loadProgress() : null;
-    let addedSequentialHint = false;
-    sorted.forEach((w, wi) => {
-      const wnRaw = Number(w.weekNumber);
-      const wn = Number.isFinite(wnRaw) ? wnRaw : wi + 1;
-      if (trackingOn && progress && progress.hobby === hobby && !addedSequentialHint) {
-        const seqHint = document.createElement("p");
-        seqHint.className =
-          "mb-4 rounded-xl border border-violet-200/70 bg-violet-50/60 px-3 py-2 text-xs font-medium leading-relaxed text-ink-700 dark:border-midnight-600 dark:bg-midnight-800/60 dark:text-slate-300";
-        seqHint.innerHTML =
-          '<i class="fa-solid fa-route mr-1.5 text-accent dark:text-accent-light" aria-hidden="true"></i><strong>Sıralı akış:</strong> Önce 1. haftayı tamamla; ardından 2., 3. ve 4. hafta sırayla açılır. Kilidi açılmayan haftanın görevleri gizlenir.';
-        resultWeeksEl.appendChild(seqHint);
-        addedSequentialHint = true;
-      }
 
-      const card = document.createElement("div");
-      card.className =
-        "rounded-2xl border-2 border-violet-200/70 bg-white p-5 dark:border-midnight-600 dark:bg-midnight-800/90";
-      const title = document.createElement("p");
-      title.className =
-        "mb-3 font-display text-base font-semibold text-accent-dark dark:text-accent-light";
-      title.textContent = `${Number.isFinite(wnRaw) ? w.weekNumber : wn}. hafta`;
-      card.appendChild(title);
-
-      const seqLocked =
-        Boolean(trackingOn && progress && progress.hobby === hobby) &&
-        !isWeekUnlocked(sorted, progress, wi);
-
-      if (seqLocked) {
-        card.classList.add("border-dashed", "opacity-95");
-        const prevIdx = Math.max(0, wi - 1);
-        const prevWn = resolveWeekNumber(sorted[prevIdx], prevIdx);
-        const lock = document.createElement("p");
-        lock.className =
-          "flex items-start gap-2 text-sm font-medium leading-relaxed text-ink-600 dark:text-slate-400";
-        lock.innerHTML = `<i class="fa-solid fa-lock mt-0.5 shrink-0 text-accent dark:text-accent-light" aria-hidden="true"></i><span>Bu hafta kilitli. Görmek ve işaretlemek için önce <strong>${prevWn}. haftadaki</strong> tüm görevleri tamamla.</span>`;
-        card.appendChild(lock);
-        resultWeeksEl.appendChild(card);
-        return;
-      }
-
-      if (w.learningObjective) {
-        const obj = document.createElement("p");
-        obj.className =
-          "mb-3 text-sm font-medium leading-relaxed text-ink-800 dark:text-slate-200";
-        obj.textContent = String(w.learningObjective);
-        card.appendChild(obj);
-      }
-      const ul = document.createElement("ul");
-      ul.className =
-        trackingOn && progress && progress.hobby === hobby
-          ? "list-none space-y-2 text-sm text-ink-800 dark:text-slate-200"
-          : "list-inside list-disc space-y-2 text-sm text-ink-800 dark:text-slate-200";
-      const tasks = Array.isArray(w.tasks) ? w.tasks : [];
-      tasks.forEach((t, idx) => {
-        if (trackingOn && progress && progress.hobby === hobby) {
-          const li = document.createElement("li");
-          const label = document.createElement("label");
-          label.className =
-            "flex cursor-pointer items-start gap-3 rounded-lg py-0.5 transition hover:bg-violet-50/80 dark:hover:bg-midnight-800/50";
-          const cb = document.createElement("input");
-          cb.type = "checkbox";
-          cb.className =
-            "hb-task-check mt-0.5 h-4 w-4 shrink-0 rounded border-violet-300 text-accent focus:ring-accent dark:border-midnight-500 dark:bg-midnight-900";
-          cb.checked = Boolean(progress.tasks[`${wn}:${idx}`]);
-          const span = document.createElement("span");
-          span.textContent = String(t);
-          span.className = cb.checked
-            ? "text-ink-500 line-through dark:text-slate-500"
-            : "text-ink-800 dark:text-slate-200";
-          cb.addEventListener("change", () => {
-            if (!currentPlan) return;
-            setTaskDone(currentPlan, hobby, wn, idx, cb.checked);
-            span.className = cb.checked
-              ? "text-ink-500 line-through dark:text-slate-500"
-              : "text-ink-800 dark:text-slate-200";
-            updateProgramChrome();
-          });
-          label.appendChild(cb);
-          label.appendChild(span);
-          li.appendChild(label);
-          ul.appendChild(li);
-        } else {
+    if (trackingOn && progress && progress.hobby === hobby && sorted.length) {
+      renderJourneyWeekWizard(plan, sorted, progress, hobby, resultWeeksEl);
+    } else {
+      journeyNavShell?.classList.add("hidden");
+      journeyNavShell?.replaceChildren();
+      sorted.forEach((w, wi) => {
+        const wnRaw = Number(w.weekNumber);
+        const wn = Number.isFinite(wnRaw) ? wnRaw : wi + 1;
+        const card = document.createElement("div");
+        card.className =
+          "rounded-2xl border-2 border-violet-200/70 bg-white p-5 dark:border-midnight-600 dark:bg-midnight-800/90";
+        const title = document.createElement("p");
+        title.className =
+          "mb-3 font-display text-base font-semibold text-accent-dark dark:text-accent-light";
+        title.textContent = `${wn}. hafta`;
+        card.appendChild(title);
+        if (w.learningObjective) {
+          const obj = document.createElement("p");
+          obj.className = "mb-3 text-sm font-medium leading-relaxed text-ink-800 dark:text-slate-200";
+          obj.textContent = String(w.learningObjective);
+          card.appendChild(obj);
+        }
+        const ul = document.createElement("ul");
+        ul.className =
+          "list-inside list-disc space-y-2 text-sm text-ink-800 dark:text-slate-200";
+        (Array.isArray(w.tasks) ? w.tasks : []).forEach((t) => {
           const li = document.createElement("li");
           li.textContent = String(t);
           ul.appendChild(li);
-        }
-      });
-      card.appendChild(ul);
-
-      const resWeek = Array.isArray(w.resourcesThisWeek) ? w.resourcesThisWeek : [];
-      if (resWeek.length) {
-        const resWrap = document.createElement("div");
-        resWrap.className =
-          "mt-4 space-y-3 rounded-xl border border-violet-200/60 bg-violet-50/40 p-4 dark:border-midnight-600 dark:bg-midnight-900/50";
-        const resHeading = document.createElement("p");
-        resHeading.className =
-          "text-xs font-bold uppercase tracking-wide text-accent-dark dark:text-accent-light";
-        resHeading.textContent = "Bu haftanın kaynakları";
-        resWrap.appendChild(resHeading);
-        resWeek.forEach((r) => {
-          const row = document.createElement("div");
-          row.className = "text-sm";
-          const top = document.createElement("div");
-          top.className = "flex flex-wrap items-baseline gap-2";
-          const kind = document.createElement("span");
-          kind.className =
-            "inline-block rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent-dark dark:text-accent-light";
-          kind.textContent = String(r.kind || "link");
-          top.appendChild(kind);
-          top.appendChild(externalLinkOrSpan(r.url, String(r.title || "Bağlantı")));
-          row.appendChild(top);
-          if (r.note) {
-            const note = document.createElement("p");
-            note.className = "mt-1 text-xs text-ink-600 dark:text-slate-400";
-            note.textContent = String(r.note);
-            row.appendChild(note);
-          }
-          resWrap.appendChild(row);
         });
-        card.appendChild(resWrap);
-      }
-
-      appendOptionalWeekPulse(card, wn, hobby, trackingOn);
-      resultWeeksEl.appendChild(card);
-    });
+        card.appendChild(ul);
+        resultWeeksEl.appendChild(card);
+      });
+    }
   }
 
   if (resultBudgetNoteEl) {
@@ -1212,7 +1496,13 @@ function renderPlan(plan) {
           tag.textContent = String(m.retailerHint);
           shopRow.appendChild(tag);
         }
-        shopRow.appendChild(externalLinkOrSpan(m.url, "Mağazada görüntüle"));
+        shopRow.appendChild(
+          externalLinkOrSpan(
+            m.url,
+            "Mağazada görüntüle",
+            [m.name, m.retailerHint].filter(Boolean).join(" ").trim() || String(m.name || "")
+          )
+        );
         left.appendChild(shopRow);
       }
       const price = document.createElement("p");
@@ -1495,11 +1785,11 @@ function tryRestoreLastPlan() {
   renderPlan(pack.plan);
 }
 
+document.documentElement.classList.add("dark");
+
 initInterestSuggestions();
-initTheme();
 initLoadingMotion();
 tryRestoreLastPlan();
-themeToggle?.addEventListener("click", toggleTheme);
 
 lottiePlayer?.addEventListener("error", () => {
   lottiePlayer.classList.add("hidden");
@@ -1541,11 +1831,16 @@ togglePlanDetailBtn?.addEventListener("click", () => {
 startProgramBtn?.addEventListener("click", () => {
   const hobby = resultsSection?.dataset.activeHobby?.trim();
   if (!hobby || !currentPlan) return;
+  journeyBrowseWeek = null;
   commitProgram(hobby);
   initProgressForHobby(hobby);
   renderPlan(currentPlan);
   resultWeeksAnchor?.scrollIntoView({ behavior: "smooth", block: "start" });
 });
+
+badgeDrawerBtn?.addEventListener("click", () => setBadgeDrawerOpen(true));
+badgeDrawerBackdrop?.addEventListener("click", () => setBadgeDrawerOpen(false));
+badgeDrawerClose?.addEventListener("click", () => setBadgeDrawerOpen(false));
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
