@@ -1,5 +1,6 @@
-/* Koyu temada üst bar: Tailwind CDN’de bazen açık arka plan kalıyor; gövdeyle uyumlu kilitle */
-.dark .hb-site-header {
+/* Üst bar: gövdeyle uyumlu (tek tema: koyu) */
+.dark .hb-site-header,
+.hb-site-header {
   background: linear-gradient(
     180deg,
     rgba(8, 8, 14, 0.97) 0%,
@@ -307,4 +308,63 @@
 .hb-interest-details[open] .hb-interest-summary {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
+}
+
+/* Haftalık nabız anketi — seçili düğme */
+.hb-pulse-rating-btn--on {
+  border-color: rgba(232, 121, 249, 0.55) !important;
+  background: linear-gradient(
+    145deg,
+    rgba(109, 89, 230, 0.35),
+    rgba(168, 85, 247, 0.2),
+    rgba(251, 191, 36, 0.12)
+  ) !important;
+  color: #f8fafc !important;
+  box-shadow: 0 4px 20px -8px rgba(168, 85, 247, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hb-pulse-rating-btn {
+    transition: none;
+  }
+}
+
+@keyframes hb-badge-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(12px);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.03) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes hb-badge-pop-out {
+  to {
+    opacity: 0;
+    transform: scale(0.92) translateY(-8px);
+  }
+}
+
+.hb-badge-toast {
+  animation: hb-badge-pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.hb-badge-toast--out {
+  animation: hb-badge-pop-out 0.4s ease forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hb-badge-toast {
+    animation: none;
+  }
+  .hb-badge-toast--out {
+    animation: none;
+    opacity: 0;
+  }
 }

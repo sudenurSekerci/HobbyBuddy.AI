@@ -196,6 +196,214 @@ function rewriteSuspectProductUrls(plan) {
   }
 }
 
+function googleSearchUrl(query) {
+  const q = String(query ?? "")
+    .trim()
+    .slice(0, 280);
+  return `https://www.google.com/search?q=${encodeURIComponent(q || "hobi")}`;
+}
+
+function youtubeSearchUrl(query) {
+  const q = String(query ?? "")
+    .trim()
+    .slice(0, 180);
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(q || "video")}`;
+}
+
+/** Uydurma watch linklerini ele: yalnızca geçerli video ID veya zaten arama sayfası. */
+function normalizeYoutubeUrl(url, title, channelName) {
+  const q = [title, channelName].filter(Boolean).join(" ").trim() || String(title || "video").trim();
+  const raw = String(url ?? "").trim();
+  if (!raw) return youtubeSearchUrl(q);
+  try {
+    const u = new URL(raw);
+    const host = u.hostname.replace(/^www\./i, "").toLowerCase();
+    if (host === "youtu.be") {
+      const id = u.pathname.replace(/^\//, "").split(/[/?&#]/)[0];
+      if (/^[a-zA-Z0-9_-]{11}$/.test(id)) return raw;
+      return youtubeSearchUrl(q);
+    }
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      if (u.pathname.startsWith("/results")) return raw;
+      if (u.pathname.startsWith("/watch")) {
+        const v = u.searchParams.get("v");
+        if (v && /^[a-zA-Z0-9_-]{11}$/.test(v)) return raw;
+        return youtubeSearchUrl(q);
+      }
+      if (u.pathname.startsWith("/shorts/")) {
+        const id = (u.pathname.split("/")[2] || "").split("?")[0];
+        if (id && /^[a-zA-Z0-9_-]{11}$/.test(id)) return raw;
+        return youtubeSearchUrl(q);
+      }
+      return youtubeSearchUrl(q);
+    }
+  } catch {
+    /* fallthrough */
+  }
+  return youtubeSearchUrl(q);
+}
+
+function normalizeBookUrl(url, title, author) {
+  const t = String(title || "kitap").trim();
+  const a = String(author || "").trim();
+  const raw = String(url ?? "").trim();
+  if (!raw) return kitapyurduSearchUrl(t, a);
+  try {
+    const u = new URL(raw);
+    const host = u.hostname.replace(/^www\./i, "").toLowerCase();
+    if (host.endsWith("goodreads.com") && u.pathname.includes("/book/show")) {
+      return `https://www.goodreads.com/search?q=${encodeURIComponent(`${t} ${a}`.trim())}`;
+    }
+    if (host.endsWith("goodreads.com") && u.pathname.includes("/search")) return raw;
+    if (host.endsWith("kitapyurdu.com")) {
+      if (u.searchParams.get("route") === "product/search" || u.pathname.includes("/search")) return raw;
+      if (isKitapyurduNumericProductPath(raw)) return kitapyurduSearchUrl(t, a);
+      return kitapyurduSearchUrl(t, a);
+    }
+    if (host.includes("amazon.") && (u.pathname.includes("/dp/") || u.pathname.includes("/gp/product"))) {
+      return googleSearchUrl(`${t} ${a} kitap`.trim());
+    }
+    const q = u.searchParams.get("q") || u.searchParams.get("search");
+    if (q || raw.includes("route=product/search") || u.pathname.includes("/search")) return raw;
+  } catch {
+    /* fallthrough */
+  }
+  return googleSearchUrl(`${t} ${a} kitap`.trim());
+}
+
+function normalizeRetailUrl(url, name, retailerHint) {
+  const q = [name, retailerHint].filter(Boolean).join(" ").trim() || String(name || "ürün").trim();
+  const fallback = googleSearchUrl(`${q} satın al`);
+  const raw = String(url ?? "").trim();
+  if (!raw) return fallback;
+  try {
+    const u = new URL(raw);
+    const host = u.hostname.replace(/^www\./i, "").toLowerCase();
+    if (host.includes("trendyol.com")) {
+      if (u.pathname.startsWith("/sr")) return raw;
+      return `https://www.trendyol.com/sr?q=${encodeURIComponent(q.slice(0, 120))}`;
+    }
+    if (host.includes("hepsiburada.com")) {
+      if (u.pathname.includes("/ara")) return raw;
+      return `https://www.hepsiburada.com/ara?q=${encodeURIComponent(q.slice(0, 120))}`;
+    }
+    if (host.includes("amazon.com.tr") || host === "amazon.tr") {
+      if (u.pathname.startsWith("/s") && u.searchParams.has("k")) return raw;
+      return `https://www.amazon.com.tr/s?k=${encodeURIComponent(q.slice(0, 120))}`;
+    }
+    if (host.endsWith("n11.com")) {
+      if (u.search.includes("q=") || u.search.includes("searchText")) return raw;
+      return `https://www.n11.com/arama?q=${encodeURIComponent(q.slice(0, 120))}`;
+    }
+    if (host.endsWith("kitapyurdu.com")) {
+      if (u.searchParams.get("route") === "product/search" || u.pathname.includes("/search")) return raw;
+      if (isKitapyurduNumericProductPath(raw)) return kitapyurduSearchUrl(name, retailerHint);
+      return kitapyurduSearchUrl(name, retailerHint);
+    }
+  } catch {
+    /* fallthrough */
+  }
+  return fallback;
+}
+
+function normalizeCommunityUrl(url, name, platform) {
+  const raw = String(url ?? "").trim();
+  const label = [name, platform].filter(Boolean).join(" ").trim() || String(name || "topluluk");
+  const fallback = googleSearchUrl(`${label} forum topluluk`);
+  if (!raw) return fallback;
+  try {
+    const u = new URL(raw);
+    const host = u.hostname.replace(/^www\./i, "").toLowerCase();
+    if (host === "reddit.com" || host.endsWith(".reddit.com")) {
+      const pathOnly = u.pathname.split("?")[0];
+      if (/^\/r\/[A-Za-z0-9_]+\/?$/.test(pathOnly)) return raw;
+      return `https://www.reddit.com/search/?q=${encodeURIComponent(label.slice(0, 120))}`;
+    }
+    if (host === "discord.gg" && u.pathname.length > 2) return raw;
+    if (host === "discord.com" && u.pathname.startsWith("/invite/")) return raw;
+  } catch {
+    /* fallthrough */
+  }
+  return fallback;
+}
+
+function normalizeArticleUrl(url, title) {
+  const t = String(title || "makale").trim();
+  const raw = String(url ?? "").trim();
+  if (!raw) return googleSearchUrl(t);
+  try {
+    const u = new URL(raw);
+    const host = u.hostname.replace(/^www\./i, "").toLowerCase();
+    if (host === "medium.com" || host.endsWith(".medium.com")) return raw;
+    if (host.endsWith("wikipedia.org")) return raw;
+  } catch {
+    /* fallthrough */
+  }
+  return googleSearchUrl(t);
+}
+
+/**
+ * Model çıktısındaki şüpheli / uydurma URL'leri arama ve güvenilir kalıplara çevirir.
+ */
+function sanitizePlanUrls(plan) {
+  if (!plan || typeof plan !== "object") return;
+
+  const books = plan.learningResources?.books;
+  if (Array.isArray(books)) {
+    books.forEach((b) => {
+      if (!b || typeof b !== "object") return;
+      b.url = normalizeBookUrl(b.url, b.title, b.author);
+    });
+  }
+
+  const vids = plan.learningResources?.youtubeVideos;
+  if (Array.isArray(vids)) {
+    vids.forEach((v) => {
+      if (!v || typeof v !== "object") return;
+      v.url = normalizeYoutubeUrl(v.url, v.title, v.channelName);
+    });
+  }
+
+  const comms = plan.learningResources?.onlineCommunities;
+  if (Array.isArray(comms)) {
+    comms.forEach((c) => {
+      if (!c || typeof c !== "object") return;
+      c.url = normalizeCommunityUrl(c.url, c.name, c.platform);
+    });
+  }
+
+  const weeks = plan.weeks;
+  if (Array.isArray(weeks)) {
+    weeks.forEach((w) => {
+      const arr = w?.resourcesThisWeek;
+      if (!Array.isArray(arr)) return;
+      arr.forEach((r) => {
+        if (!r || typeof r !== "object" || !r.url) return;
+        const k = String(r.kind || "").toLowerCase();
+        if (k === "video" || k === "youtube") {
+          r.url = normalizeYoutubeUrl(r.url, r.title, "");
+        } else if (k === "book") {
+          r.url = normalizeBookUrl(r.url, r.title, "");
+        } else if (k === "community") {
+          r.url = normalizeCommunityUrl(r.url, r.title, r.note || "");
+        } else if (k === "article") {
+          r.url = normalizeArticleUrl(r.url, r.title);
+        } else {
+          r.url = googleSearchUrl(r.title || r.note || "kaynak");
+        }
+      });
+    });
+  }
+
+  const mats = plan.materials;
+  if (Array.isArray(mats)) {
+    mats.forEach((m) => {
+      if (!m || typeof m !== "object") return;
+      m.url = normalizeRetailUrl(m.url, m.name, m.retailerHint);
+    });
+  }
+}
+
 module.exports = async (req, res) => {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
 
@@ -265,16 +473,16 @@ module.exports = async (req, res) => {
   }
   const userJson = JSON.stringify(userPayload, null, 0);
 
-  const systemInstruction = `Sen HobbyBuddy AI adında bir hobi koçusun. Kullanıcıya tıklanabilir ve güvenilir yönlendirme vermek zorundasın.
+  const systemInstruction = `Sen HobbyBuddy AI adında bir hobi koçusun. Bağlantılar tıklanınca çalışmalı; uydurma URL verme.
 
-KRİTİK — URL dürstlüğü:
-- Kitap, e-ticaret ürünü veya benzersiz ID içeren detay sayfası URL'sini ASLA tahmin etme veya uydurma. Slug + sayı (ör. kitapyurdu.com/kitap/.../10368.html) genelde yanlış ürüne gider.
-- Kitap için: yalnızca arama sonucu URL'si kullan — örn. kitapyurdu.com index.php?route=product/search&search= ile kitap adı + yazar (URL-encode); veya goodreads.com/search?q= ; veya google.com/search?q= kitap adı yazar.
-- Video: emin değilsen youtube.com/results?search_query=
-- Malzeme (Trendyol, Hepsiburada, Amazon TR): uydurma /dp/ veya ürün ID'li yol kullanma; site içi arama URL'si veya google arama tercih et.
-- Topluluk: gerçek subreddit/discord davet URL'si; emin değilsen arama URL'si.
+KRİTİK — URL dürstlüğü (bunlara uy; sunucu sonra yine de güvenli arama URL'lerine çevirir):
+- YouTube: Doğrudan watch?v= veya kısa youtu.be linki VERME (çoğu uydurmadır). Başlık + kanal adına göre arama sayfası kullan: https://www.youtube.com/results?search_query= (sorgu URL-encode).
+- Kitap: Ürün detay veya /book/show/... gibi spesifik yol verme. Kitapyurdu için: index.php?route=product/search&search= kitap adı ve yazar. İstersen goodreads.com/search?q=
+- Malzeme (TR e-ticaret): Ürün ID'li /dp/... yolu verme. trendyol.com/sr?q= veya hepsiburada.com/ara?q= veya amazon.com.tr/s?k= gibi site içi ARAMA URL'si; sorguda ürün adı.
+- Topluluk: Şüpheliyse reddit.com/search/?q= veya google.com/search?q= reddit + konu. Discord için yalnızca gerçek davet linki formatında emin değilsen arama.
+- Makale: Bilinçsiz alan adı uydurma; emin değilsen google.com/search?q= başlık.
 
-Genel: https tercih; uydurma alan adı yok. journeyReflectionGuide analiz iddiası taşımasın; süreç rehberliği ver. Yanıt yalnızca JSON şeması, Türkçe.`;
+Genel: https; journeyReflectionGuide analiz iddiası taşımasın; süreç rehberliği ver. Yanıt yalnızca JSON şeması, Türkçe.`;
 
   const selectionRule = chosenHobby
     ? `Kullanıcı "${chosenHobby}" hobisini seçti. recommendedHobby metni bu string ile karakter olarak birebir aynı olmalı. hobbyOptions içinde bu tam name ile bir öğe olmalı; ilk öğe seçilen hobi olsun, ardından 2–3 farklı alternatif (kullanıcı ilgilerinden). weeks, learningResources ve materials yalnızca seçilen hobi için.`
@@ -301,8 +509,8 @@ Kurallar (öncelik: hobiyi gerçekten başlatmak). Şemada uzunluk sabitlenmedi�
 - hobbyOptions: tam 3 veya 4 öğe. Her biri name, howItMatchesUser, oneLineTeaser.
 - recommendedHobby: hobbyOptions[].name değerlerinden biriyle tam eşleşmeli.
 - weeks: tam 4 öğe; weekNumber sırayla 1,2,3,4. Her hafta learningObjective; tasks içinde 3–6 somut görev; resourcesThisWeek içinde en az 2 kaynak (kind: book|video|community|article; title, url, note).
-- learningResources.books: en az 3; her kitap url'si mutlaka ARAMA sayfası olsun (kitap adı + yazar sorgusu); kitapyurdu ürün detay yolu (/kitap/slug/sayı.html) YASAK — yanlış kitaba götürür. youtubeVideos: en az 4; doğrudan video veya arama URL. onlineCommunities: en az 3.
-- materials: url zorunlu; ürün ID'si uydurma — arama veya kategori arama URL'si (ürün adı sorguda).
+- learningResources.books: en az 3; her kitap url'si arama (kitap adı + yazar). youtubeVideos: en az 4; her biri youtube.com/results?search_query= (video başlığı ± kanal). onlineCommunities: en az 3; mümkünse reddit arama veya google arama; şüpheli sabit sayfa URL'si verme.
+- materials: url zorunlu; site içi arama URL'si (ürün adı sorguda), ürün ID'li yol yok.
 - materialsTotalEstimateTry ve budgetComplianceNote: monthlyBudgetTRY ile uyumlu.
 - journeyReflectionGuide: dört haftalık süreç + son hafta öz-değerlendirme çerçevesi; destekleyici ton, kesin hüküm yok.`;
 
@@ -319,7 +527,7 @@ Kurallar (öncelik: hobiyi gerçekten başlatmak). Şemada uzunluk sabitlenmedi�
       },
     ],
     generationConfig: {
-      temperature: 0.55,
+      temperature: 0.42,
       maxOutputTokens: 12_288,
       responseMimeType: "application/json",
       responseSchema: RESPONSE_SCHEMA,
@@ -375,6 +583,7 @@ Kurallar (öncelik: hobiyi gerçekten başlatmak). Şemada uzunluk sabitlenmedi�
     }
 
     rewriteSuspectProductUrls(plan);
+    sanitizePlanUrls(plan);
 
     res.status(200).json({ plan });
   } catch (err) {

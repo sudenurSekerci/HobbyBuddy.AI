@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr" class="scroll-smooth">
+<html lang="tr" class="scroll-smooth dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -86,7 +86,7 @@
     <script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.8/dist/lottie-player.js"></script>
   </head>
   <body
-    class="relative min-h-screen bg-gradient-to-br from-violet-100/90 via-white to-indigo-50/80 text-ink-900 antialiased transition-colors duration-300 dark:from-midnight-950 dark:via-[#100c18] dark:to-midnight-900 dark:text-slate-100"
+    class="relative min-h-screen bg-gradient-to-br from-midnight-950 via-[#100c18] to-midnight-900 text-slate-100 antialiased"
   >
     <div class="hb-ambient-bg" aria-hidden="true">
       <div class="hb-blob hb-blob--a"></div>
@@ -102,7 +102,7 @@
     >
 
     <header
-      class="hb-site-header border-b border-violet-200/70 bg-white/85 shadow-sm shadow-violet-200/20 backdrop-blur-md transition-colors"
+      class="hb-site-header border-b border-violet-500/15 shadow-sm backdrop-blur-md transition-colors"
     >
       <div
         class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8"
@@ -138,13 +138,13 @@
         </a>
         <button
           type="button"
-          id="theme-toggle"
-          class="hb-btn-press inline-flex h-11 w-11 items-center justify-center rounded-xl border border-violet-200/80 bg-white text-ink-700 shadow-sm hover:border-accent/50 hover:text-accent-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:border-midnight-600 dark:bg-midnight-800 dark:text-slate-300 dark:hover:border-fuchsia-400/45 dark:hover:text-amber-200/90 dark:hover:shadow-[0_0_20px_-4px_rgba(251,191,36,0.35)]"
-          aria-label="Tema değiştir"
-          aria-pressed="false"
+          id="badge-drawer-btn"
+          class="hb-btn-press relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-violet-500/30 bg-midnight-800 text-amber-300 shadow-sm transition hover:border-fuchsia-400/50 hover:text-amber-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400/60"
+          aria-label="Rozetler"
+          aria-expanded="false"
+          aria-controls="badge-drawer"
         >
-          <i class="fa-solid fa-moon text-lg dark:hidden" aria-hidden="true"></i>
-          <i class="fa-solid fa-sun hidden text-lg dark:inline" aria-hidden="true"></i>
+          <i class="fa-solid fa-medal text-lg" aria-hidden="true"></i>
         </button>
       </div>
     </header>
@@ -441,8 +441,12 @@
             class="mb-3 hidden rounded-xl border border-accent/30 bg-accent/10 px-3 py-2 text-xs font-medium text-ink-800 dark:border-accent-light/35 dark:bg-accent/15 dark:text-slate-200"
           >
             <i class="fa-solid fa-arrow-down mr-1 text-accent dark:text-accent-light" aria-hidden="true"></i>
-            Önce burada görevleri işaretle; ilerleme özeti ve öneriler aşağıdaki yolculuk panelinde.
+            Haftalar sırayla açılır: önce görevler, sonra nabız anketi — ilerleme yolculuk panelinde.
           </p>
+          <div
+            id="journey-nav-shell"
+            class="mb-4 hidden rounded-xl border border-violet-500/25 bg-midnight-950/60 p-3 shadow-inner"
+          ></div>
           <div id="result-weeks" class="space-y-4"></div>
         </div>
 
@@ -669,6 +673,46 @@
         </div>
       </div>
     </div>
+
+    <div
+      id="badge-drawer"
+      class="fixed inset-0 z-[200] hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="badge-drawer-title"
+    >
+      <button
+        type="button"
+        id="badge-drawer-backdrop"
+        class="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        aria-label="Kapat"
+      ></button>
+      <div
+        class="absolute right-0 top-0 flex h-full w-full max-w-md flex-col border-l border-violet-500/20 bg-midnight-900 shadow-2xl"
+      >
+        <div class="flex items-center justify-between border-b border-violet-500/15 px-4 py-4">
+          <h2 id="badge-drawer-title" class="font-display text-lg font-bold text-white">
+            <i class="fa-solid fa-medal mr-2 text-amber-300" aria-hidden="true"></i>
+            Rozetler
+          </h2>
+          <button
+            type="button"
+            id="badge-drawer-close"
+            class="hb-btn-press rounded-lg p-2 text-slate-400 hover:bg-midnight-800 hover:text-white"
+            aria-label="Paneli kapat"
+          >
+            <i class="fa-solid fa-xmark text-xl" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div id="badge-drawer-list" class="flex-1 overflow-y-auto p-4"></div>
+      </div>
+    </div>
+
+    <div
+      id="badge-toast-root"
+      class="pointer-events-none fixed right-4 top-20 z-[210] flex max-w-sm flex-col gap-2 sm:right-6"
+      aria-live="polite"
+    ></div>
 
     <script src="js/app.js" type="module"></script>
   </body>
