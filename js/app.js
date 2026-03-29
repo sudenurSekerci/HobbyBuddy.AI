@@ -39,6 +39,7 @@ const REQUEST_TIMEOUT_MS = 55_000;
 
 /** Geçmiş haftaya göz at (null = canlı akış) */
 let journeyBrowseWeek = null;
+let badgeToastOverlayCount = 0;
 /** Rozet kazanma bildirimi için önceki kazanılmış id'ler */
 let prevEarnedBadgeIds = new Set();
 
@@ -678,15 +679,60 @@ function syncBadgeToasts(states) {
     if (prevEarnedBadgeIds.has(id)) return;
     const b = states.find((x) => x.id === id);
     if (!b || !badgeToastRoot) return;
-    const el = document.createElement("div");
-    el.className =
-      "hb-badge-toast pointer-events-auto flex items-center gap-3 rounded-xl border border-fuchsia-400/40 bg-gradient-to-r from-accent/40 via-fuchsia-600/25 to-amber-500/20 px-4 py-3 text-sm font-semibold text-white shadow-joy";
-    el.setAttribute("role", "status");
-    el.innerHTML = `<i class="fa-solid ${b.icon} text-2xl text-amber-300" aria-hidden="true"></i><span>Rozet: <strong>${b.label}</strong></span>`;
-    badgeToastRoot.appendChild(el);
+
+    const overlay = document.createElement("div");
+    overlay.className =
+      "hb-badge-toast-overlay pointer-events-auto fixed inset-0 z-[210] flex items-center justify-center p-6";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.setAttribute("aria-label", `Yeni rozet: ${b.label}`);
+
+    const backdrop = document.createElement("div");
+    backdrop.className = "hb-badge-toast-backdrop absolute inset-0";
+    backdrop.setAttribute("aria-hidden", "true");
+
+    const panel = document.createElement("div");
+    panel.className =
+      "hb-badge-toast-panel relative z-10 flex max-w-[min(20rem,90vw)] flex-col items-center gap-3 px-4 text-center";
+
+    const shell = document.createElement("div");
+    shell.className = "hb-badge-medal-shell";
+    const medal = document.createElement("div");
+    medal.className = "hb-badge-medal hb-badge-medal--hex";
+    medal.innerHTML = `<i class="fa-solid ${b.icon} hb-badge-medal-icon" aria-hidden="true"></i>`;
+    shell.appendChild(medal);
+
+    const tag = document.createElement("p");
+    tag.className =
+      "text-[10px] font-bold uppercase tracking-[0.22em] text-violet-300/95";
+    tag.textContent = "Yeni rozet";
+
+    const title = document.createElement("p");
+    title.className = "font-display text-xl font-bold leading-tight text-white drop-shadow-sm sm:text-2xl";
+    title.textContent = b.label;
+
+    panel.appendChild(shell);
+    panel.appendChild(tag);
+    panel.appendChild(title);
+
+    overlay.appendChild(backdrop);
+    overlay.appendChild(panel);
+    badgeToastRoot.appendChild(overlay);
+
+    badgeToastOverlayCount += 1;
+    if (badgeToastOverlayCount === 1) {
+      document.body.classList.add("overflow-hidden");
+    }
+
     window.setTimeout(() => {
-      el.classList.add("hb-badge-toast--out");
-      window.setTimeout(() => el.remove(), 400);
+      overlay.classList.add("hb-badge-toast--out");
+      window.setTimeout(() => {
+        overlay.remove();
+        badgeToastOverlayCount = Math.max(0, badgeToastOverlayCount - 1);
+        if (badgeToastOverlayCount === 0) {
+          document.body.classList.remove("overflow-hidden");
+        }
+      }, 420);
     }, 3200);
   });
   prevEarnedBadgeIds = next;
