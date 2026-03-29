@@ -11,6 +11,6 @@ Yapay zeka bu projede sadece bir öneri motoru değil, bir "Hobi Mentorü" olara
 3.	**Süreç ve sonraki adım:** Haftalık akışta önce görevler, sonra nabız anketi; ilerleme ve **rozetler** yerelde tutulur. Yol bitince **aynı hobide ileri seviye** veya **farklı hobi yönü** için yeni plan üretimi tetiklenebilir (Gemini + önceki özet metni).
 ## 📊 Rakip Durumu ve Farkımız
 Perplexity ve Gemini ile yapılan analizler sonucunda HobbyFinderAI ve Midgen.ai gibi rakiplerin sadece statik eşleşmeler sunduğu görülmüştür.
-*	Farkımız: Rakipler çoğunlukla "fikir" verirken, HobbyBuddy AI **uygulama planı**, **malzeme asistanlığı**, **adım adım yolculuk (görev → anket → sonraki hafta)**, **rozetler ve geri dönülebilir hafta gezgini** ve **yol sonu yönlendirmesi** ile kullanıcıyı pratiğe bağlar.
+*	Farkımız: Rakipler çoğunlukla "fikir" verirken, HobbyBuddy AI gamification prensiplerini benimseyerek kişileri hobilerini bulurken aynı zamanda eğlenebilmelerinin önünü açıyor. Uygulamamız dört haftalık **malzeme asistanlığı**, **adım adım yolculuk (görev → anket → sonraki hafta)**, **rozetler** ve **yol sonu yönlendirmesi** ile kullanıcıyı kendi hobileri için aksiyon almasını hedefliyor.
 ## ✅ Başarı Kriteri
 Kullanıcının 30 saniye içinde bütçesine, zamanına ve kişiliğine uygun; 4 haftalık planı ve malzeme listesi hazır bir hobi yol haritasına ulaşması.
