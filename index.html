@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr" class="scroll-smooth dark">
+<html lang="tr" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -59,12 +59,20 @@
                 light: "#9b8cff",
                 dark: "#4f42c4",
               },
+              joy: {
+                mint: "#5eead4",
+                sky: "#38bdf8",
+                amber: "#fbbf24",
+                fuchsia: "#e879f9",
+              },
             },
             boxShadow: {
               brand: "0 12px 40px -12px rgba(109, 89, 230, 0.45)",
               "brand-sm": "0 4px 20px -4px rgba(109, 89, 230, 0.35)",
               card: "0 4px 24px -4px rgba(15, 15, 25, 0.12)",
               "card-dark": "0 8px 32px -8px rgba(0, 0, 0, 0.55)",
+              joy: "0 14px 44px -14px rgba(168, 85, 247, 0.4)",
+              "joy-sm": "0 6px 24px -8px rgba(251, 191, 36, 0.2)",
             },
           },
         },
@@ -78,23 +86,12 @@
     <script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.8/dist/lottie-player.js"></script>
   </head>
   <body
-    class="relative min-h-screen bg-gradient-to-br from-violet-100/90 via-white to-indigo-50/80 text-ink-900 antialiased transition-colors duration-300 dark:from-[#020208] dark:via-[#08051a] dark:to-[#030a12] dark:text-slate-100"
+    class="relative min-h-screen bg-gradient-to-br from-violet-100/90 via-white to-indigo-50/80 text-ink-900 antialiased transition-colors duration-300 dark:from-midnight-950 dark:via-[#100c18] dark:to-midnight-900 dark:text-slate-100"
   >
     <div class="hb-ambient-bg" aria-hidden="true">
-      <div class="hb-ambient-light absolute inset-0 overflow-hidden dark:hidden">
-        <div class="hb-blob hb-blob--a"></div>
-        <div class="hb-blob hb-blob--b"></div>
-        <div class="hb-blob hb-blob--c"></div>
-      </div>
-      <div class="hb-cosmic absolute inset-0 hidden overflow-hidden dark:block">
-        <div class="hb-cosmic-glow"></div>
-        <div class="hb-star-slab hb-star-slab--a"></div>
-        <div class="hb-star-slab hb-star-slab--b"></div>
-        <div class="hb-star-slab hb-star-slab--c"></div>
-        <div class="hb-meteor hb-meteor--1" aria-hidden="true"></div>
-        <div class="hb-meteor hb-meteor--2" aria-hidden="true"></div>
-        <div class="hb-meteor hb-meteor--3" aria-hidden="true"></div>
-      </div>
+      <div class="hb-blob hb-blob--a"></div>
+      <div class="hb-blob hb-blob--b"></div>
+      <div class="hb-blob hb-blob--c"></div>
     </div>
 
     <div class="relative z-[1] flex min-h-screen flex-col">
@@ -105,21 +102,21 @@
     >
 
     <header
-      class="border-b border-violet-200/70 bg-white/85 shadow-sm shadow-violet-200/20 backdrop-blur-md transition-colors dark:border-accent/20 dark:bg-midnight-950/55 dark:shadow-[0_8px_40px_-12px_rgba(109,89,230,0.25)]"
+      class="hb-site-header border-b border-violet-200/70 bg-white/85 shadow-sm shadow-violet-200/20 backdrop-blur-md transition-colors"
     >
       <div
         class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8"
       >
         <a
           href="#main"
-          class="flex min-w-0 items-center gap-3 rounded-xl outline-none ring-offset-2 ring-offset-white transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent dark:ring-offset-midnight-900"
+          class="hb-brand-link group flex min-w-0 items-center gap-3 rounded-xl outline-none ring-offset-2 ring-offset-white transition hover:opacity-95 focus-visible:ring-2 focus-visible:ring-accent dark:ring-offset-midnight-900"
           aria-label="HobbyBuddy AI — ana içerik"
         >
           <img
             src="img/hobbybuddy-mark.svg"
             width="44"
             height="44"
-            class="h-11 w-11 shrink-0 drop-shadow-sm"
+            class="hb-brand-mark h-11 w-11 shrink-0 drop-shadow-sm transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
             alt=""
             decoding="async"
           />
@@ -127,7 +124,11 @@
             <p
               class="font-display text-lg font-semibold tracking-tight text-ink-950 dark:text-white"
             >
-              HobbyBuddy AI
+              <span class="text-ink-900 dark:text-slate-100">Hobby</span><span
+                class="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-amber-400 bg-clip-text text-transparent dark:from-violet-300 dark:via-fuchsia-400 dark:to-amber-300"
+                >Buddy</span
+              >
+              <span class="text-ink-900 dark:text-slate-100"> AI</span>
             </p>
             <p class="text-xs text-ink-600 dark:text-slate-400 sm:text-sm">
               <i class="fa-solid fa-seedling mr-1 text-accent dark:text-accent-light" aria-hidden="true"></i
@@ -138,7 +139,7 @@
         <button
           type="button"
           id="theme-toggle"
-          class="hb-btn-press inline-flex h-11 w-11 items-center justify-center rounded-xl border border-violet-200/80 bg-white text-ink-700 shadow-sm hover:border-accent/50 hover:text-accent-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:border-midnight-600 dark:bg-midnight-800 dark:text-slate-300 dark:hover:border-accent-light/40 dark:hover:text-accent-light"
+          class="hb-btn-press inline-flex h-11 w-11 items-center justify-center rounded-xl border border-violet-200/80 bg-white text-ink-700 shadow-sm hover:border-accent/50 hover:text-accent-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:border-midnight-600 dark:bg-midnight-800 dark:text-slate-300 dark:hover:border-fuchsia-400/45 dark:hover:text-amber-200/90 dark:hover:shadow-[0_0_20px_-4px_rgba(251,191,36,0.35)]"
           aria-label="Tema değiştir"
           aria-pressed="false"
         >
@@ -151,9 +152,9 @@
     <main id="main" class="relative flex-1 mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
       <section class="mb-10 text-center sm:mb-14" aria-labelledby="hero-heading">
         <div
-          class="mb-5 inline-flex items-center gap-2 rounded-full border border-accent/35 bg-accent/15 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent-dark shadow-brand-sm dark:border-accent-light/40 dark:bg-accent/20 dark:text-accent-light"
+          class="hb-hero-pill mb-5 inline-flex items-center gap-2 rounded-full border border-accent/35 bg-accent/15 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-accent-dark shadow-brand-sm dark:border-fuchsia-400/40 dark:bg-gradient-to-r dark:from-accent/30 dark:via-fuchsia-600/20 dark:to-amber-500/25 dark:text-slate-100 dark:shadow-joy-sm sm:px-5"
         >
-          <i class="fa-solid fa-sparkles" aria-hidden="true"></i>
+          <i class="fa-solid fa-sparkles text-accent-dark dark:text-amber-300" aria-hidden="true"></i>
           Kişisel hobi rehberi
         </div>
         <h1
@@ -161,7 +162,7 @@
           class="font-display text-3xl font-bold tracking-tight text-ink-950 dark:text-white sm:text-4xl lg:text-[2.75rem] lg:leading-tight"
         >
           Sana uygun hobiyi,<br class="hidden sm:inline" />
-          <span class="bg-gradient-to-r from-accent-dark to-violet-600 bg-clip-text text-transparent dark:from-accent-light dark:to-violet-300"
+          <span class="bg-gradient-to-r from-accent-dark to-violet-600 bg-clip-text text-transparent dark:from-accent-light dark:via-fuchsia-300 dark:to-amber-200"
             >4 haftalık bir yol haritasıyla</span
           >
           keşfet
@@ -182,7 +183,7 @@
 
       <section
         id="onboarding-section"
-        class="rounded-2xl border border-violet-200/90 bg-white/95 p-6 shadow-card backdrop-blur-sm transition-colors dark:border-midnight-600 dark:bg-midnight-800/95 dark:shadow-card-dark sm:p-8 lg:p-10"
+        class="hb-playful-panel rounded-2xl border border-violet-200/90 bg-white/95 p-6 shadow-card backdrop-blur-sm transition-colors dark:border-violet-500/20 dark:bg-midnight-800/95 dark:shadow-[0_8px_40px_-12px_rgba(0,0,0,0.5),0_0_0_1px_rgba(168,85,247,0.12),0_0_48px_-20px_rgba(109,89,230,0.35)] sm:p-8 lg:p-10"
         aria-labelledby="form-heading"
       >
         <div class="mb-8">
@@ -226,7 +227,7 @@
 
             <details
               id="interest-suggestions-details"
-              class="hb-interest-details mt-4 rounded-2xl border-2 border-violet-200/70 bg-gradient-to-br from-violet-50/90 to-white dark:border-midnight-600 dark:from-midnight-900/80 dark:to-midnight-800/50"
+              class="hb-interest-details mt-4 rounded-2xl border-2 border-violet-200/70 bg-gradient-to-br from-violet-50/90 to-white dark:border-violet-500/20 dark:bg-gradient-to-br dark:from-violet-950/40 dark:via-fuchsia-950/20 dark:to-midnight-800/60"
             >
               <summary
                 class="hb-interest-summary flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-4 py-3.5 text-left transition hover:bg-violet-100/50 dark:hover:bg-midnight-800/60"
@@ -347,7 +348,7 @@
             <button
               type="submit"
               id="submit-btn"
-              class="hb-btn-press inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-8 py-4 text-sm font-bold text-white shadow-brand transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 dark:focus-visible:ring-offset-midnight-900 sm:w-auto"
+              class="hb-btn-press hb-cta-primary inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-8 py-4 text-sm font-bold text-white shadow-brand transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 dark:bg-gradient-to-r dark:from-violet-600 dark:via-fuchsia-600 dark:to-amber-500 dark:shadow-joy dark:hover:brightness-110 dark:focus-visible:ring-fuchsia-400/80 dark:focus-visible:ring-offset-midnight-900 sm:w-auto"
             >
               <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
               Hobi planımı oluştur
@@ -409,7 +410,7 @@
         <div id="result-plan-detail">
         <div
           id="result-plan-detail-top"
-          class="result-plan-collapsible mb-8 rounded-2xl border-2 border-accent/35 bg-gradient-to-br from-accent/15 via-violet-50/50 to-transparent p-6 shadow-brand-sm dark:border-accent-light/30 dark:from-accent/20 dark:via-midnight-800/50 dark:to-transparent sm:p-8"
+          class="result-plan-collapsible mb-8 rounded-2xl border-2 border-accent/35 bg-gradient-to-br from-accent/15 via-violet-50/50 to-transparent p-6 shadow-brand-sm dark:border-fuchsia-500/25 dark:bg-gradient-to-br dark:from-accent/25 dark:via-fuchsia-600/10 dark:to-amber-500/10 dark:shadow-joy-sm sm:p-8"
         >
           <p class="text-xs font-medium uppercase tracking-wide text-accent-dark dark:text-accent-light">
             Seçili hobi (bu plan buna göre)
@@ -613,7 +614,7 @@
     </main>
 
     <footer
-      class="border-t border-violet-200/70 bg-white/80 py-8 text-center text-sm font-medium text-ink-600 transition-colors dark:border-accent/15 dark:bg-midnight-950/45 dark:text-slate-400 dark:backdrop-blur-md"
+      class="border-t border-violet-200/70 bg-white/80 py-8 text-center text-sm font-medium text-ink-600 transition-colors dark:border-violet-500/15 dark:bg-midnight-900/85 dark:text-slate-400 dark:shadow-[inset_0_1px_0_0_rgba(251,191,36,0.06)]"
     >
       <p>
         <i class="fa-solid fa-heart-pulse mr-1 text-accent/80 dark:text-accent-light/80" aria-hidden="true"></i>
@@ -637,7 +638,7 @@
       ></div>
       <div class="relative flex min-h-full flex-col items-center justify-center p-6">
         <div
-          class="w-full max-w-md rounded-2xl border-2 border-violet-200/50 bg-white/98 p-8 shadow-2xl shadow-brand dark:border-midnight-600 dark:bg-midnight-800/98 dark:shadow-card-dark"
+          class="w-full max-w-md rounded-2xl border-2 border-violet-200/50 bg-white/98 p-8 shadow-2xl shadow-brand dark:border-fuchsia-500/25 dark:bg-midnight-800/98 dark:shadow-[0_25px_80px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(168,85,247,0.15),0_0_60px_-15px_rgba(109,89,230,0.45)]"
         >
           <div class="flex flex-col items-center">
             <lottie-player
