@@ -24,8 +24,9 @@ Yerelde tam akış için **`npx vercel dev`** kullan (kökten çalıştır; `ver
 | `features/img/` | Logo ve görseller |
 | `api/analyze.js` | Gemini proxy (repo kökünde; Vercel `api/*` kuralı) |
 | `api/verify-urls.js` | Dış URL doğrulama |
-| `docs/` | Ürün dokümantasyonu (`.md`, `README` hariç) |
-| `vercel.json` | `api` süresi + kök → `features/` yönlendirmeleri |
+| `idea.md`, `user-flow.md`, `tech-stack.md`, `pdr.md`, `tasks.md` | Ürün / akış notları (kök dizinde) |
+| `vercel.json` | `api` süre limiti + kök URL → `features/` yönlendirmeleri (**Vercel kökte arar**) |
+| `package.json` | npm betikleri — **kökte kalmalı** |
 | `.env.example` | Ortam değişkeni şablonu |
 
 ## Kurulum (adım adım)

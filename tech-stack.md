@@ -34,7 +34,7 @@ Projede kullanılan teknolojiler ve rolleri.
 ### Barındırma ve araçlar
 
 - **Vercel** — Deploy, HTTPS, preview URL’leri; `GEMINI_API_KEY` gibi sırlar yalnızca Vercel Environment Variables içinde.
-- **Cursor** — IDE; repo içi `docs/tasks.md`, `docs/user-flow.md`, `docs/tech-stack.md` ile süreç takibi.
+- **Cursor** — IDE; repo içi `tasks.md`, `user-flow.md`, `tech-stack.md` ile süreç takibi.
 
 ---
 
