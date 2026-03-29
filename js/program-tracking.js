@@ -375,6 +375,11 @@ export function computeInsight(plan, progress) {
     path = "explore";
   }
 
+  if (complete && path === "neutral" && avgEnjoy != null) {
+    if (avgEnjoy < 3.25) path = "explore";
+    else if (avgEnjoy > 3.75) path = "specialize";
+  }
+
   return { path, rate, done, total, avgEnjoy, avgEffort, pulses, commentTone, complete };
 }
 
@@ -440,20 +445,68 @@ export function buildCompletionInsightCopy(insight, hobby) {
         ? " Serbest yorumlarında genelde olumlu bir ton var."
         : "";
 
-  let lean = "İki seçenek de geçerli; aşağıdaki düğmelerden birini kullanarak bir sonraki dört haftayı modele ürettirebilirsin.";
+  let lean = "Metrik ve yorum özetin aşağıdaki birincil öneriyle uyumlu hale getirildi; istersen alternatif düğmeyi kullanabilirsin.";
   if (insight.path === "specialize") {
-    lean = `Özetin, ${h} üzerinde bir üst seviye veya daha derin bir proje rotasına devam etmeyi destekliyor. Yine de farklı bir yön denemek istersen ikinci düğme bunun için.`;
+    lean = `${h} üzerinde üst seviye / derin proje rotasına devam etmek özetle uyumlu görünüyor.`;
   } else if (insight.path === "explore") {
-    lean = `Özetin, benzer ilgi alanlarında farklı bir hobi veya alt dal denemeyi düşünmene uygun görünüyor. Yine de aynı hobide derinleşmek istiyorsan ilk düğme bunun için.`;
+    lean = `Benzer ilgi alanlarında farklı bir hobi veya alt dal denemek özetle daha uygun görünüyor.`;
   }
 
   return {
-    title: "Yol tamam — sıradaki adımı seç",
+    title: "Yol tamam — özet ve önerilen adım",
     body: `Dört haftalık görev listeni tamamladın; tamamlanma yaklaşık %${pct}.${enjoyNote}${commentHint} ${lean}`,
     bullets: [
-      "İleri seviye: aynı hobi için yeni 4 haftalık plan (daha zorlayıcı görevler).",
-      "Farklı yön: ilgi metnine ve geri bildirimine göre yeni hobi önerileri (seçili hobiyi kilitlemez).",
+      "Aşağıda vurgulanan düğme, özetine göre birincil öneridir; diğeri isteğe bağlı alternatiftir.",
     ],
+  };
+}
+
+/**
+ * Tamamlanma sonrası birincil eylem (advance = aynı hobi ileri, pivot = farklı yön).
+ * @param {object} insight computeInsight çıktısı
+ */
+export function getCompletionPrimaryAction(insight) {
+  if (insight.path === "specialize") {
+    return {
+      primary: "advance",
+      headline: "Önerimiz: aynı hobide bir üst seviyeye geç",
+      detail:
+        "Görev tamamlaman ve geri bildirim özeti, bu hobi üzerinde derinleşmeyi destekliyor. Ana düğmeyle ileri seviye dört haftalık plan iste.",
+      secondaryLabel: "Yine de farklı bir hobi yönü dene",
+    };
+  }
+  if (insight.path === "explore") {
+    return {
+      primary: "pivot",
+      headline: "Önerimiz: yeni bir hobi veya belirgin farklı bir alt yön dene",
+      detail:
+        "Keyif, çaba veya yorum tonun benzer ilgi alanlarında başka bir denemeyi mantıklı gösteriyor. Ana düğmeyle farklı yön planı iste.",
+      secondaryLabel: "Yine de aynı hobide ileri seviye plan iste",
+    };
+  }
+  const ae = insight.avgEnjoy;
+  if (ae != null && ae < 3.25) {
+    return {
+      primary: "pivot",
+      headline: "Önerimiz: önce yön veya hobi çeşitlendirmesi",
+      detail: `Ortalama keyif ${ae.toFixed(1)}/5; benzer ilgilere yakın farklı bir uğraş denemek genelde daha tatmin edici olur.`,
+      secondaryLabel: "Yine de aynı hobide ileri seviye plan iste",
+    };
+  }
+  if (ae != null && ae > 3.75) {
+    return {
+      primary: "advance",
+      headline: "Önerimiz: aynı çizgide derinleş",
+      detail: `Ortalama keyif ${ae.toFixed(1)}/5; ritmi korumak için ileri seviye dört haftalık plan uygun görünüyor.`,
+      secondaryLabel: "Yine de farklı bir hobi yönü dene",
+    };
+  }
+  return {
+    primary: "pivot",
+    headline: "Önerimiz: hafif yön değişikliği ile devam",
+    detail:
+      "Sinyaller net ayrışmıyor; yine de yeni bir alt yön denemek keşfi artırır. İkna olmazsan ileri seviye seçeneğine bakabilirsin.",
+    secondaryLabel: "Yine de aynı hobide ileri seviye plan iste",
   };
 }
 

@@ -7,6 +7,7 @@ import {
   computeInsight,
   computeXpAndStreak,
   dismissWeeklyPulse,
+  getCompletionPrimaryAction,
   getFocusWeekNumber,
   getTaskCounts,
   initProgressForHobby,
@@ -79,6 +80,8 @@ const journeyInsightTitle = document.getElementById("journey-insight-title");
 const journeyInsightBody = document.getElementById("journey-insight-body");
 const journeyInsightBullets = document.getElementById("journey-insight-bullets");
 const journeyInsightActions = document.getElementById("journey-insight-actions");
+const resultWeeksAnchor = document.getElementById("result-weeks-anchor");
+const resultWeeksProgramHint = document.getElementById("result-weeks-program-hint");
 
 const errors = {
   interests: document.getElementById("interests-error"),
@@ -100,6 +103,8 @@ let planRequestSeq = 0;
 /** @type {object | null} */
 let currentPlan = null;
 let pendingProgramFeedback = "";
+/** Son tamamlanma geçişinde öneri kartına kaydırma için */
+let prevJourneyPathComplete = false;
 
 const INTEREST_GROUPS = [
   {
@@ -476,6 +481,7 @@ function applyProgramPhaseUi(plan) {
   resultProgramCta?.classList.toggle("hidden", started);
   resultJourneyWrap?.classList.toggle("hidden", !started);
   startProgramBtn?.setAttribute("aria-expanded", started ? "true" : "false");
+  resultWeeksProgramHint?.classList.toggle("hidden", !started);
 }
 
 function readProfileFromForm() {
@@ -628,7 +634,10 @@ function updateProgramChrome() {
   journeyTracker?.classList.toggle("hidden", !started);
   journeyInsightCard?.classList.toggle("hidden", !started);
 
-  if (!started) return;
+  if (!started) {
+    prevJourneyPathComplete = false;
+    return;
+  }
 
   const counts = getTaskCounts(currentPlan, progress);
   const { xp, activeWeeks } = computeXpAndStreak(currentPlan, progress);
@@ -666,34 +675,63 @@ function updateProgramChrome() {
   if (journeyInsightActions) {
     journeyInsightActions.replaceChildren();
     if (complete) {
-      const wrap = document.createElement("div");
-      wrap.className = "flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap";
-      const adv = document.createElement("button");
-      adv.type = "button";
-      adv.className =
-        "hb-btn-press inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-white shadow-brand-sm dark:shadow-none";
-      adv.innerHTML =
-        '<i class="fa-solid fa-stairs" aria-hidden="true"></i> İleri seviye 4 haftalık plan';
-      adv.addEventListener("click", () => {
-        void requestJourneyContinuation("advance");
+      const rec = getCompletionPrimaryAction(insight);
+      const callout = document.createElement("div");
+      callout.className =
+        "mb-4 rounded-xl border-2 border-accent/45 bg-gradient-to-br from-accent/15 to-violet-50/40 p-4 dark:border-accent-light/40 dark:from-accent/20 dark:to-midnight-900/50";
+      const callTitle = document.createElement("p");
+      callTitle.className =
+        "font-display text-base font-bold text-ink-950 dark:text-white";
+      callTitle.textContent = rec.headline;
+      const callDetail = document.createElement("p");
+      callDetail.className = "mt-2 text-sm leading-relaxed text-ink-700 dark:text-slate-300";
+      callDetail.textContent = rec.detail;
+      callout.appendChild(callTitle);
+      callout.appendChild(callDetail);
+      journeyInsightActions.appendChild(callout);
+
+      const primaryKind = rec.primary;
+      const primaryBtn = document.createElement("button");
+      primaryBtn.type = "button";
+      primaryBtn.className =
+        "hb-btn-press w-full rounded-xl bg-accent px-4 py-3.5 text-sm font-bold text-white shadow-brand transition hover:brightness-110 dark:shadow-none";
+      if (primaryKind === "advance") {
+        primaryBtn.innerHTML =
+          '<i class="fa-solid fa-stairs mr-2" aria-hidden="true"></i> İleri seviye 4 haftalık plan (önerilen)';
+        primaryBtn.addEventListener("click", () => {
+          void requestJourneyContinuation("advance");
+        });
+      } else {
+        primaryBtn.innerHTML =
+          '<i class="fa-solid fa-compass mr-2" aria-hidden="true"></i> Farklı hobi / yön öner (önerilen)';
+        primaryBtn.addEventListener("click", () => {
+          void requestJourneyContinuation("pivot");
+        });
+      }
+      journeyInsightActions.appendChild(primaryBtn);
+
+      const secondaryBtn = document.createElement("button");
+      secondaryBtn.type = "button";
+      secondaryBtn.className =
+        "hb-btn-press mt-2 w-full rounded-xl border border-violet-200/90 bg-transparent px-3 py-2 text-xs font-semibold text-ink-600 underline-offset-2 hover:bg-violet-50/50 hover:text-ink-800 dark:border-midnight-600 dark:text-slate-400 dark:hover:bg-midnight-800/60 dark:hover:text-slate-200";
+      secondaryBtn.textContent = rec.secondaryLabel;
+      secondaryBtn.addEventListener("click", () => {
+        void requestJourneyContinuation(primaryKind === "advance" ? "pivot" : "advance");
       });
-      const piv = document.createElement("button");
-      piv.type = "button";
-      piv.className =
-        "hb-btn-press inline-flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-violet-200/90 bg-white px-4 py-2.5 text-sm font-semibold text-ink-800 dark:border-midnight-600 dark:bg-midnight-800 dark:text-slate-200";
-      piv.innerHTML =
-        '<i class="fa-solid fa-compass" aria-hidden="true"></i> Farklı hobi / yön öner';
-      piv.addEventListener("click", () => {
-        void requestJourneyContinuation("pivot");
-      });
-      wrap.appendChild(adv);
-      wrap.appendChild(piv);
-      journeyInsightActions.appendChild(wrap);
+      journeyInsightActions.appendChild(secondaryBtn);
+
       const sub = document.createElement("p");
-      sub.className = "mt-2 text-xs text-ink-600 dark:text-slate-400";
+      sub.className = "mt-3 text-xs text-ink-600 dark:text-slate-400";
       sub.textContent =
-        "İkisi de yeni plan üretir; ilki aynı hobide derinleştirir, ikincisi farklı bir öneri için kilidi kaldırır. Başlangıç bilgilerin (süre, bütçe) aynı kalır.";
+        "Her iki seçenek de yeni dört haftalık plan üretir ve yerel program verisini sıfırlar. Süre ve bütçe formdaki değerlerle kalır.";
       journeyInsightActions.appendChild(sub);
+
+      if (complete && !prevJourneyPathComplete) {
+        prevJourneyPathComplete = true;
+        requestAnimationFrame(() => {
+          journeyInsightCard?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        });
+      }
     } else if (insight.path === "explore") {
       const btn = document.createElement("button");
       btn.type = "button";
@@ -720,6 +758,8 @@ function updateProgramChrome() {
       journeyInsightActions.appendChild(hint);
     }
   }
+
+  if (!complete) prevJourneyPathComplete = false;
 }
 
 function formatTry(n) {
@@ -1494,7 +1534,7 @@ togglePlanDetailBtn?.addEventListener("click", () => {
   if (!expanded) {
     resultPlanDetail?.scrollIntoView({ behavior: "smooth", block: "start" });
   } else {
-    resultJourneyWrap?.scrollIntoView({ behavior: "smooth", block: "start" });
+    resultWeeksAnchor?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 });
 
@@ -1504,7 +1544,7 @@ startProgramBtn?.addEventListener("click", () => {
   commitProgram(hobby);
   initProgressForHobby(hobby);
   renderPlan(currentPlan);
-  resultJourneyWrap?.scrollIntoView({ behavior: "smooth", block: "start" });
+  resultWeeksAnchor?.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
 form.addEventListener("submit", async (e) => {

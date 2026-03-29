@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr" class="scroll-smooth">
+<html lang="tr" class="scroll-smooth dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -78,12 +78,23 @@
     <script src="https://unpkg.com/@lottiefiles/lottie-player@2.0.8/dist/lottie-player.js"></script>
   </head>
   <body
-    class="relative min-h-screen bg-gradient-to-br from-violet-100/90 via-white to-indigo-50/80 text-ink-900 antialiased transition-colors duration-300 dark:from-midnight-950 dark:via-midnight-850 dark:to-midnight-900 dark:text-slate-100"
+    class="relative min-h-screen bg-gradient-to-br from-violet-100/90 via-white to-indigo-50/80 text-ink-900 antialiased transition-colors duration-300 dark:from-[#020208] dark:via-[#08051a] dark:to-[#030a12] dark:text-slate-100"
   >
     <div class="hb-ambient-bg" aria-hidden="true">
-      <div class="hb-blob hb-blob--a"></div>
-      <div class="hb-blob hb-blob--b"></div>
-      <div class="hb-blob hb-blob--c"></div>
+      <div class="hb-ambient-light absolute inset-0 overflow-hidden dark:hidden">
+        <div class="hb-blob hb-blob--a"></div>
+        <div class="hb-blob hb-blob--b"></div>
+        <div class="hb-blob hb-blob--c"></div>
+      </div>
+      <div class="hb-cosmic absolute inset-0 hidden overflow-hidden dark:block">
+        <div class="hb-cosmic-glow"></div>
+        <div class="hb-star-slab hb-star-slab--a"></div>
+        <div class="hb-star-slab hb-star-slab--b"></div>
+        <div class="hb-star-slab hb-star-slab--c"></div>
+        <div class="hb-meteor hb-meteor--1" aria-hidden="true"></div>
+        <div class="hb-meteor hb-meteor--2" aria-hidden="true"></div>
+        <div class="hb-meteor hb-meteor--3" aria-hidden="true"></div>
+      </div>
     </div>
 
     <div class="relative z-[1] flex min-h-screen flex-col">
@@ -94,7 +105,7 @@
     >
 
     <header
-      class="border-b border-violet-200/70 bg-white/85 shadow-sm shadow-violet-200/20 backdrop-blur-md transition-colors dark:border-violet-950/50 dark:bg-midnight-900/90 dark:shadow-black/40"
+      class="border-b border-violet-200/70 bg-white/85 shadow-sm shadow-violet-200/20 backdrop-blur-md transition-colors dark:border-accent/20 dark:bg-midnight-950/55 dark:shadow-[0_8px_40px_-12px_rgba(109,89,230,0.25)]"
     >
       <div
         class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8"
@@ -419,11 +430,18 @@
           ></div>
         </div>
 
-        <div class="mb-8">
+        <div id="result-weeks-anchor" class="mb-8 scroll-mt-28">
           <h3 class="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-ink-900 dark:text-white">
             <i class="fa-solid fa-calendar-week text-accent dark:text-accent-light" aria-hidden="true"></i>
             4 haftalık yol haritası
           </h3>
+          <p
+            id="result-weeks-program-hint"
+            class="mb-3 hidden rounded-xl border border-accent/30 bg-accent/10 px-3 py-2 text-xs font-medium text-ink-800 dark:border-accent-light/35 dark:bg-accent/15 dark:text-slate-200"
+          >
+            <i class="fa-solid fa-arrow-down mr-1 text-accent dark:text-accent-light" aria-hidden="true"></i>
+            Önce burada görevleri işaretle; ilerleme özeti ve öneriler aşağıdaki yolculuk panelinde.
+          </p>
           <div id="result-weeks" class="space-y-4"></div>
         </div>
 
@@ -595,7 +613,7 @@
     </main>
 
     <footer
-      class="border-t border-violet-200/70 bg-white/80 py-8 text-center text-sm font-medium text-ink-600 transition-colors dark:border-midnight-600 dark:bg-midnight-900/80 dark:text-slate-400"
+      class="border-t border-violet-200/70 bg-white/80 py-8 text-center text-sm font-medium text-ink-600 transition-colors dark:border-accent/15 dark:bg-midnight-950/45 dark:text-slate-400 dark:backdrop-blur-md"
     >
       <p>
         <i class="fa-solid fa-heart-pulse mr-1 text-accent/80 dark:text-accent-light/80" aria-hidden="true"></i>
