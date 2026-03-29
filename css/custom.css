@@ -1,3 +1,17 @@
+/* Koyu temada üst bar: Tailwind CDN’de bazen açık arka plan kalıyor; gövdeyle uyumlu kilitle */
+.dark .hb-site-header {
+  background: linear-gradient(
+    180deg,
+    rgba(8, 8, 14, 0.97) 0%,
+    rgba(16, 12, 24, 0.94) 55%,
+    rgba(12, 12, 18, 0.92) 100%
+  );
+  border-bottom-color: rgba(139, 92, 246, 0.18);
+  box-shadow:
+    0 8px 32px -12px rgba(0, 0, 0, 0.55),
+    inset 0 -1px 0 0 rgba(251, 191, 36, 0.07);
+}
+
 /* Silik arka plan: yavaş blob + hafif ızgara (reduced-motion: kapalı) */
 .hb-ambient-bg {
   position: fixed;
@@ -71,19 +85,65 @@
 }
 
 .dark .hb-blob {
-  opacity: 0.12;
+  opacity: 0.16;
 }
 
 .dark .hb-blob--a {
-  background: #4a3d8a;
+  background: #6d28d9;
 }
 
 .dark .hb-blob--b {
-  background: #2d4a62;
+  background: #a21caf;
 }
 
 .dark .hb-blob--c {
-  background: #2d6b58;
+  background: #b45309;
+}
+
+/* Koyu temada ek sıcak ışık (logo ile uyumlu mor → fuşya → amber) */
+.dark .hb-ambient-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(ellipse 100% 70% at 0% -5%, rgba(168, 85, 247, 0.28), transparent 58%),
+    radial-gradient(ellipse 90% 60% at 100% 5%, rgba(251, 191, 36, 0.14), transparent 52%),
+    radial-gradient(ellipse 70% 55% at 50% 105%, rgba(99, 102, 241, 0.14), transparent 55%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dark .hb-ambient-bg::after {
+    background-image:
+      radial-gradient(ellipse 100% 70% at 0% -5%, rgba(168, 85, 247, 0.22), transparent 58%),
+      radial-gradient(ellipse 90% 60% at 100% 5%, rgba(251, 191, 36, 0.1), transparent 52%),
+      radial-gradient(ellipse 70% 55% at 50% 105%, rgba(99, 102, 241, 0.1), transparent 55%);
+  }
+}
+
+/* Hero üst rozeti: hafif neşeli nabız (yalnızca koyu tema) */
+@keyframes hb-hero-pill-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 4px 20px -4px rgba(168, 85, 247, 0.35),
+      0 0 0 0 rgba(251, 191, 36, 0.12);
+  }
+  50% {
+    box-shadow:
+      0 6px 28px -4px rgba(232, 121, 249, 0.4),
+      0 0 24px -4px rgba(251, 191, 36, 0.18);
+  }
+}
+
+.dark .hb-hero-pill {
+  animation: hb-hero-pill-glow 5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dark .hb-hero-pill {
+    animation: none;
+  }
 }
 
 @keyframes hb-float-a {
