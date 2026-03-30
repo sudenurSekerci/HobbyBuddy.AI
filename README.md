@@ -1,95 +1,82 @@
-# HobbyBuddy.AI
 
-HobbyBuddy AI: Hobisizleşme sorununa karşı yapay zeka destekli, kişiselleştirilmiş 4 haftalık yol haritası sunan, gamification prensiplerini benimsemiş bir hobi edinme aracıdır.
+## Problem
 
-Yayın Linki: https://hobbybuddyai.vercel.app/
-Loom Linki
+İnsanlar iş, okul ve ekran yoğunluğu yüzünden hobiye zaman ayırmakta zorlanıyor; yeni bir şeye başlamak isteyen çoğu kişi “neyden, ne kadar bütçeyle, hangi sırayla?” sorularına net cevap bulamayınca vazgeçiyor. Genel liste önerileri de tek başına yetmiyor: bütçe, malzeme ve hafta hafta izlenebilir bir yol olmadan süreç çoğu zaman yarım kalıyor.
 
-## Bu proje nasıl çalışıyor?
+## Çözüm
 
-1. **Tarayıcı** formu ve (isteğe bağlı) program takip verisini kullanır; **Gemini API anahtarı istemciye gelmez.**
-2. **`api/analyze.js`** — `GEMINI_API_KEY` ile Gemini’ye yapılandırılmış JSON (şema) isteği; yanıtta hobi seçenekleri, 4 hafta, kaynaklar, malzemeler ve yolculuk rehberi metni üretilir. İsteğe bağlı gövde alanları: önceki program özeti (`programFeedback`), yol sonrası istek (`journeyContinuation`: `advance` | `pivot`).
-3. **`api/verify-urls.js`** — Sonuçtaki dış bağlantılar için sunucudan HEAD/GET kontrolü (ölü linkleri metne çevirmek için).
-4. **Ön yüz** — `features/js/app.js` + `features/js/program-tracking.js`: son plan ve form özeti `localStorage`’da saklanır. “Programı başlat” sonrası **yolculuk sihirbazı**: her haftada önce görevler, görevler bitince haftalık nabız anketi, ardından bir sonraki hafta; **Geri** ile tamamlanmış haftalara salt okunur bakış. **Rozetler** (kazanılan/kazanılabilir) üst çubuktan panelde; yeni rozet kazanıldığında ortada bildirim ve bulanık arka plan. Dört hafta + anketler tamamlanınca **özet/analiz** ve “ileri seviye plan” / “farklı hobi yönü” ile yeni analiz isteği.
+**HobbyBuddy.AI** sana ilgi alanlarını, haftalık süreni ve bütçeni soruyor; **Google Gemini** ile buna uygun **4 haftalık bir plan** çıkarıyor: haftalık görevler, okuma/video gibi kaynaklar, malzeme fikirleri ve kısa bir yolculuk metni. Anahtar **sunucuda** kalıyor; tarayıcıya API sırrı gitmiyor.
 
-Yerelde tam akış için **`npx vercel dev`** kullan (kökten çalıştır; `vercel.json` kök URL’leri `features/` altındaki statik dosyalara yönlendirir, `api/*` kökte kalır). Yalnızca `npx serve .` kullanırsan kökte `index.html` olmadığı için site açılmaz; sadece arayüz denemek için bkz. aşağı.
+Uygulama tarafında haftaları tek tek ilerletiyorsun: önce görevleri bitiriyorsun, sonra kısa bir “nabız” anketi var, ardından sıradaki hafta açılıyor. İstersen geçmiş haftalara geri bakabiliyorsun; tamamladıkça **rozet** kazanıyorsun. Dört hafta bittiğinde özet geliyor; istersen **aynı hobide ileri seviye** ya da **başka bir yöne** yeni plan isteyebiliyorsun.
 
-## Proje yapısı
+## Canlı Demo
 
-| Yol | Açıklama |
-|-----|----------|
-| `features/index.html` | Arayüz (Tailwind CDN, tek sayfa) |
-| `features/css/custom.css` | Yardımcı stiller |
-| `features/js/app.js` | Form, arayüz, API çağrıları, sonuç ve program modu (yolculuk, rozetler) |
-| `features/js/program-tracking.js` | Yerel takip: görevler, anket, özet, API geri bildirim metni |
-| `features/img/` | Logo ve görseller |
-| `api/analyze.js` | Gemini proxy (repo kökünde; Vercel `api/*` kuralı) |
-| `api/verify-urls.js` | Dış URL doğrulama |
-| `vercel.json` | `api` süresi + kök → `features/` yönlendirmeleri |
-| `package.json` | Vercel script’leri |
-| `.env.example` | Ortam değişkeni şablonu |
-| `idea.md`, `pdr.md`, `tasks.md`, `tech-stack.md`, `user-flow.md` | Ürün dokümantasyonu (kökte, `README.md` ile birlikte) |
+**Canlı site:** https://hobbybuddyai.vercel.app/ 
 
-## Kurulum (adım adım)
+**Demo videosu:** https://youtu.be/7U_kriwfjc0
 
-### 1) Google AI Studio — API anahtarı
+## Kullanılan Teknolojiler
 
-1. [Google AI Studio](https://aistudio.google.com/) → **Get API key** ile anahtar oluştur.
-2. Anahtarı **kaynak koda yazma**; yalnızca `.env` veya Vercel panelinde sakla.
+- Sayfa ve arayüz: HTML, Tailwind (CDN), düz JavaScript — kod `features/` klasöründe
+- Yapay zekâ: Google Gemini; istekler `api/analyze.js` üzerinden gidiyor
+- Yayın: Vercel (site + sunucusuz `api` fonksiyonları)
+- İlerleme: Tarayıcıda `localStorage`; ayrıntılı takip `program-tracking.js` içinde
 
-### 2) Yerel ortam değişkeni
+## Nasıl Çalıştırılır?
 
-Proje kökünde `.env.example` dosyasını `.env` olarak kopyala ve doldur:
+### 1. Ne lazım?
+
+- [Node.js](https://nodejs.org/) 18 veya üzeri
+- [Google AI Studio](https://aistudio.google.com/)’dan aldığın **Gemini API anahtarı** — bunu koda yazma; sadece `.env` veya Vercel ayarlarında tut
+
+### 2. Anahtarı yerel dosyaya koy
+
+Kökteki `.env.example` dosyasını kopyalayıp `.env` yap ve doldur:
 
 ```env
 GEMINI_API_KEY=buraya_anahtarın
 ```
 
-`.gitignore` içinde `.env` zaten var; commit edilmez.
+### 3. Hem site hem API ile çalıştır
 
-### 3) Yerelde hem site hem API: Vercel CLI
-
-[Vercel CLI](https://vercel.com/docs/cli) yüklü olmalı (`npm i -g vercel` veya `npx vercel`).
-
-Proje klasöründe:
+Projeyi bilgisayarında tam denemek için **Vercel’in geliştirme sunucusu** en pratik yol. Kök klasörde:
 
 ```bash
 npx vercel login
 npx vercel link
 npx vercel env pull .env.local
-```
-
-İlk kez bağlıyorsan `vercel link` sırasında projeyi oluştur veya mevcut repoyu seç. Sonra `.env` içindeki `GEMINI_API_KEY` ile uyumlu olması için Vercel panosundan da env ekleyebilir veya yerelde `.env` kullanabilirsin.
-
-Geliştirme sunucusu (statik dosyalar + `api/*`):
-
-```bash
 npx vercel dev
 ```
 
-Tarayıcıda CLI’nin verdiği adresi aç (genelde `http://localhost:3000`). Formu gönder; yükleme sonrası plan gelmeli.
+Açılan adresi tarayıcıda aç (genelde `http://localhost:3000`). Formu dene; plan geliyorsa her şey yolunda.
 
-### 4) Canlıya alma (Vercel)
+*(Not: `vercel.json` sayesinde kök adres, `features/` içindeki arayüze yönleniyor; API yolları yine `/api/...` olarak çalışıyor.)*
 
-1. Kodu GitHub’a pushla.
-2. [Vercel](https://vercel.com)’de projeyi import et.
-3. **Settings → Environment Variables** içine `GEMINI_API_KEY` ekle (Production / Preview).
-4. Deploy sonrası sitede duman testi: form gönder → plan görünsün.
-
-### 5) Model / süre notları
-
-- Gemini çağrısı **REST v1beta** (yapılandırılmış JSON + `systemInstruction`). Varsayılan model `gemini-2.5-flash`. İstersen `GEMINI_MODEL` / `GEMINI_API_VERSION` ile override et.
-- İstemci tarafında analiz isteği için hedef zaman aşımı yaklaşık **55 sn** (zengin JSON yanıtları için); ağ veya model yavaşsa tekrar denemek gerekebilir.
-- Vercel **Hobby** planda sunucu fonksiyonu süresi kısıtlı olabilir; üretimde süre/limitleri kontrol et.
-
-## Sadece statik önizleme (API olmadan)
+### 4. Sadece ekranı görmek istersen (API yok)
 
 ```bash
 npx --yes serve features
 ```
 
-Bu modda **AI çağrısı çalışmaz** (`/api/*` yok); yalnızca arayüzü kontrol etmek içindir. Tam akış için yine `npx vercel dev` kullan.
+Burada yapay zekâ çağrısı olmaz; sadece sayfanın açılıp açılmadığını kontrol etmek için yeterli.
 
-## Git
+### 5. İnternete çıkarmak
 
-İlk kurulumda depo yoksa: `git init`. `.gitignore` API anahtarları ve `node_modules` için yapılandırılmıştır.
+1. Kodu GitHub’a gönder  
+2. [Vercel](https://vercel.com)’e bağla  
+3. Ortam değişkenlerine `GEMINI_API_KEY` ekle (Production ve gerekirse Preview için)
+
+---
+
+## Ek: Klasörler ne işe yarıyor?
+
+| Yol | Ne var? |
+|-----|---------|
+| `features/` | `index.html`, stiller, JS, görseller — gördüğün arayüz |
+| `api/` | Gemini ve link kontrolü — sunucuda çalışır |
+| `vercel.json` | Yayın ve yönlendirme ayarları |
+| `idea.md`, `user-flow.md`, `tech-stack.md`, … | Ürünü anlatan notlar (kökte) |
+
+Varsayılan model `gemini-2.5-flash`; analiz isteği tarafında yaklaşık **55 saniye** zaman aşımı hedefleniyor. Daha fazla teknik ayrıntı için `tech-stack.md` dosyasına bakabilirsin.
+
+`.env` gibi dosyalar `.gitignore` sayesinde repoya yanlışlıkla gitmez.
