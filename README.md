@@ -5,9 +5,9 @@
 
 ## Çözüm
 
-**HobbyBuddy.AI** sana ilgi alanlarını, haftalık süreni ve bütçeni soruyor; **Google Gemini** ile buna uygun **4 haftalık bir plan** çıkarıyor: haftalık görevler, okuma/video gibi kaynaklar, malzeme fikirleri ve kısa bir yolculuk metni. Anahtar **sunucuda** kalıyor; tarayıcıya API sırrı gitmiyor.
+**HobbyBuddy.AI** sana ilgi alanlarını, haftalık süreni ve bütçeni sorarak seni gamification bazlı bir sisteme dahil ediyor. **Google Gemini** ile buna uygun **4 haftalık bir plan** çıkarıyor: haftalık görevler, okuma/video gibi kaynaklar, malzeme fikirleri ve kısa bir yolculuk metni sunuyor. 
 
-Uygulama tarafında haftaları tek tek ilerletiyorsun: önce görevleri bitiriyorsun, sonra kısa bir “nabız” anketi var, ardından sıradaki hafta açılıyor. İstersen geçmiş haftalara geri bakabiliyorsun; tamamladıkça **rozet** kazanıyorsun. Dört hafta bittiğinde özet geliyor; istersen **aynı hobide ileri seviye** ya da **başka bir yöne** yeni plan isteyebiliyorsun.
+Onayladığın kişisel programını seçtiğinde eğlenerek hobileşme yolculuğun başlıyor. Sana çizilen plandaki görevlerini tamamladıkça **rozet** kazanıyorsun. Dört hafta bittiğinde analiz özetin geliyor; **aynı hobide ileri seviye** ya da **başka bir yöne** yeni plan isteyebiliyorsun. Bu sayede dört hafta sonunda sadece yeni bir hobi deneyimlemiş olumuyor ayrıca bundan sonrası için hobileşme serüvenini beklemeden devam ettirebiliyorsun.
 
 ## Canlı Demo
 
